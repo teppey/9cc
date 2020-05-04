@@ -29,6 +29,8 @@ Token *token;
 typedef enum {
     ND_ADD, // +
     ND_SUB, // -
+    ND_MUL, // *
+    ND_DIV, // /
     ND_NUM, // 整数
 } NodeKind;
 
@@ -122,7 +124,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-') {
+        if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')') {
             cur = new_token(TK_RESERVED, cur, p++);
             continue;
         }
@@ -156,22 +158,44 @@ Node *new_node_num(int val) {
 }
 
 Node *expr(void);
+Node *mul(void);
 Node *primary(void);
 
 Node *expr() {
-    Node *node = primary();
+    Node *node = mul();
 
     for (;;) {
         if (consume('+'))
-            node = new_node(ND_ADD, node, primary());
+            node = new_node(ND_ADD, node, mul());
         else if (consume('-'))
-            node = new_node(ND_SUB, node, primary());
+            node = new_node(ND_SUB, node, mul());
+        else
+            return node;
+    }
+}
+
+Node *mul() {
+    Node *node = primary();
+
+    for (;;) {
+        if (consume('*'))
+            node = new_node(ND_MUL, node, primary());
+        else if (consume('/'))
+            node = new_node(ND_DIV, node, primary());
         else
             return node;
     }
 }
 
 Node *primary() {
+    // 次のトークンが"("なら、"(" expr ")"のはず
+    if (consume('(')) {
+        Node *node = expr();
+        expect(')');
+        return node;
+    }
+
+    // そうでなければ数値のはず
     return new_node_num(expect_number());
 }
 
@@ -193,6 +217,13 @@ void gen(Node *node) {
             break;
         case ND_SUB:
             printf("  sub rax, rdi\n");
+            break;
+        case ND_MUL:
+            printf("  imul rax, rdi\n");
+            break;
+        case ND_DIV:
+            printf("  cqo\n");
+            printf("  idiv rdi\n");
             break;
     }
 
