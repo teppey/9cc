@@ -8,6 +8,7 @@
 // トークンの種類
 typedef enum {
     TK_RESERVED, // 記号
+    TK_IDENT,    // 識別子
     TK_NUM,      // 整数トークン
     TK_EOF,      // 入力の終わりを表すトークン
 } TokenKind;
@@ -37,6 +38,8 @@ typedef enum {
     ND_LTE, // <=
     ND_EQ,  // ==
     ND_NEQ, // !=
+    ND_ASSIGN, // =
+    ND_LVAR,   // ローカル変数
 } NodeKind;
 
 typedef struct Node Node;
@@ -47,7 +50,11 @@ struct Node {
     Node *lhs;     // 左辺
     Node *rhs;     // 右辺
     int val;       // kindがND_NUMの場合のみ使う
+    int offset;    // kindがND_LVARの場合のみ使う
 };
+
+// パース結果
+extern Node *code[100];
 
 // 入力プログラム
 extern char *user_input;
@@ -59,10 +66,13 @@ void expect(char *op);
 int expect_number();
 bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str, int len);
-Token *tokenize(char *p);
+void tokenize(void);
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
+void program(void);
+Node *stmt(void);
 Node *expr(void);
+Node *assign(void);
 Node *equality(void);
 Node *relational(void);
 Node *add(void);
