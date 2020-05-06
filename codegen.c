@@ -10,6 +10,21 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
+    if (node->kind == ND_RETURN) {
+        // returnの返り値になっている式のコードを出力
+        // 出力したコードはスタックトップに1つの値を残すはず
+        gen(node->lhs);
+        // スタックトップの値をRAXにセット
+        printf("  pop rax\n");
+        // スタックポインタをベースポインタに設定
+        printf("  mov rsp, rbp\n");
+        // RBPレジスタに現在の関数を呼び出す前のベースポインタをセット
+        printf("  pop rbp\n");
+        // リターンアドレスをスタックからポップしてジャンプ
+        printf("  ret\n");
+        return;
+    }
+
     switch (node->kind) {
         case ND_NUM:
             printf("  push %d\n", node->val);

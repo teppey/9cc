@@ -52,5 +52,7 @@ assert 5 'bar = 2 + 3;'
 assert 10 'foo = 2; bar = 2 + 3; foo * bar;'
 assert 0 '1 == 0;'
 assert 1 '1+1 == 2;'
+assert 5 'return 5; return 8;'
+assert 14 'a = 3; b = 5 * 6 - 8; return a + b / 2;'
 
 echo OK
