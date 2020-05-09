@@ -1,4 +1,4 @@
-#include "9cc.h"
+#include "sobacc.h"
 
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR)

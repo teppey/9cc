@@ -1,4 +1,4 @@
-#include "9cc.h"
+#include "sobacc.h"
 
 // 現在着目しているトークン
 Token *token;
