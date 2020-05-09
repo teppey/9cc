@@ -1,5 +1,7 @@
 #include "sobacc.h"
 
+static int label_count;
+
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR)
         error("代入の左辺値が変数ではありません");
@@ -23,6 +25,31 @@ void gen(Node *node) {
         // リターンアドレスをスタックからポップしてジャンプ
         printf("  ret\n");
         return;
+    }
+
+    if (node->kind == ND_IF) {
+        if (node->rhs->kind == ND_ELSE) {
+            // elseがある場合
+            gen(node->lhs);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je  .Lelse%d\n", label_count);
+            gen(node->rhs->lhs);
+            printf("  jmp .Lend%d\n", label_count);
+            printf(".Lelse%d:\n", label_count);
+            gen(node->rhs->rhs);
+            printf(".Lend%d:\n", label_count++);
+            return;
+        } else {
+            // elseがない場合
+            gen(node->lhs);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je  .Lend%d\n", label_count);
+            gen(node->rhs);
+            printf(".Lend%d:\n", label_count++);
+            return;
+        }
     }
 
     switch (node->kind) {

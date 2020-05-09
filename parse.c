@@ -53,6 +53,24 @@ bool consume_return() {
     return true;
 }
 
+// 次のトークンがifのときには、トークンを1つ読み進めて真を返す。
+// それ以外の場合には偽を返す。
+bool consume_if() {
+    if (token->kind != TK_IF)
+        return false;
+    token = token->next;
+    return true;
+}
+
+// 次のトークンがelseのときには、トークンを1つ読み進めて真を返す。
+// それ以外の場合には偽を返す。
+bool consume_else() {
+    if (token->kind != TK_ELSE)
+        return false;
+    token = token->next;
+    return true;
+}
+
 // 次のトークンが識別子のときには、そのトークンを返しトークンを1つ読み進める。
 // それ以外の場合にはNULLを返す。
 Token *consume_ident() {
@@ -137,6 +155,20 @@ void tokenize() {
             continue;
         }
 
+        // if
+        if (strncmp(p, "if", 2) == 0 && !is_alnum(p[2])) {
+            cur = new_token(TK_IF, cur, "if", 2);
+            p += 2;
+            continue;
+        }
+
+        // else
+        if (strncmp(p, "else", 4) == 0 && !is_alnum(p[4])) {
+            cur = new_token(TK_ELSE, cur, "else", 4);
+            p += 4;
+            continue;
+        }
+
         if ('a' <= *p && *p <= 'z') {
             char *q = p + 1;
             while ('a' <= *q && *q <= 'z')
@@ -202,6 +234,21 @@ void program() {
 
 Node *stmt() {
     Node *node;
+    Node *test;
+    Node *body;
+
+    if (consume_if()) {
+        expect("(");
+        test = expr();
+        expect(")");
+        body = stmt();
+        if (consume_else()) {
+            node = new_node(ND_IF, test, new_node(ND_ELSE, body, stmt()));
+        } else {
+            node = new_node(ND_IF, test, body);
+        }
+        return node;
+    }
 
     if (consume_return()) {
         node = new_node(ND_RETURN, expr(), NULL);
