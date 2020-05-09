@@ -56,5 +56,8 @@ assert 5 'return 5; return 8;'
 assert 14 'a = 3; b = 5 * 6 - 8; return a + b / 2;'
 assert 1 'if (3 == 3) return 1;'
 assert 2 'if (3 == 4) return 1; else return 2;'
+assert 0 'a = 0; while (a > 1) a = a + 1; return a;'
+assert 3 'a = 0; while (a < 3) a = a + 1; return a;'
+assert 20 'a = 0; while (a < 3) if (a == 2) a = a * 10; else a = a + 1; return a;'
 
 echo OK

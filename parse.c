@@ -71,6 +71,15 @@ bool consume_else() {
     return true;
 }
 
+// 次のトークンがwhileのときには、トークンを1つ読み進めて真を返す。
+// それ以外の場合には偽を返す。
+bool consume_while() {
+    if (token->kind != TK_WHILE)
+        return false;
+    token = token->next;
+    return true;
+}
+
 // 次のトークンが識別子のときには、そのトークンを返しトークンを1つ読み進める。
 // それ以外の場合にはNULLを返す。
 Token *consume_ident() {
@@ -169,6 +178,13 @@ void tokenize() {
             continue;
         }
 
+        // while
+        if (strncmp(p, "while", 5) == 0 && !is_alnum(p[5])) {
+            cur = new_token(TK_WHILE, cur, "while", 5);
+            p += 5;
+            continue;
+        }
+
         if ('a' <= *p && *p <= 'z') {
             char *q = p + 1;
             while ('a' <= *q && *q <= 'z')
@@ -247,6 +263,15 @@ Node *stmt() {
         } else {
             node = new_node(ND_IF, test, body);
         }
+        return node;
+    }
+
+    if (consume_while()) {
+        expect("(");
+        test = expr();
+        expect(")");
+        body = stmt();
+        node = new_node(ND_WHILE, test, body);
         return node;
     }
 
