@@ -28,26 +28,31 @@ void gen(Node *node) {
     }
 
     if (node->kind == ND_IF) {
+        int label_else;
+        int label_end;
         if (node->rhs->kind == ND_ELSE) {
             // elseがある場合
+            label_else = label_count++;
+            label_end = label_count++;
             gen(node->lhs);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je  .Lelse%d\n", label_count);
+            printf("  je  .Lelse%d\n", label_else);
             gen(node->rhs->lhs);
-            printf("  jmp .Lend%d\n", label_count);
-            printf(".Lelse%d:\n", label_count);
+            printf("  jmp .Lend%d\n", label_end);
+            printf(".Lelse%d:\n", label_else);
             gen(node->rhs->rhs);
-            printf(".Lend%d:\n", label_count++);
+            printf(".Lend%d:\n", label_end);
             return;
         } else {
             // elseがない場合
+            label_end = label_count++;
             gen(node->lhs);
             printf("  pop rax\n");
             printf("  cmp rax, 0\n");
-            printf("  je  .Lend%d\n", label_count);
+            printf("  je  .Lend%d\n", label_end);
             gen(node->rhs);
-            printf(".Lend%d:\n", label_count++);
+            printf(".Lend%d:\n", label_end);
             return;
         }
     }
