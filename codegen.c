@@ -95,6 +95,16 @@ void gen(Node *node) {
         return;
     }
 
+    if (node->kind == ND_BLOCK) {
+        for (int i = 0; i < node->vector->count; i++) {
+            gen(node_vector_ref(node->vector, i));
+            // 1つ1つのステートメントは1つの値をスタックに残すので
+            // スタックが溢れないようにポップする
+            printf("  pop rax\n");
+        }
+        return;
+    }
+
     switch (node->kind) {
         case ND_NUM:
             printf("  push %d\n", node->val);

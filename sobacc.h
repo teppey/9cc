@@ -50,9 +50,11 @@ typedef enum {
     ND_ELSE,   // else
     ND_WHILE,  // while
     ND_FOR,    // for
+    ND_BLOCK,  // ブロック({...})
 } NodeKind;
 
 typedef struct Node Node;
+typedef struct NodeVector NodeVector;
 
 // 抽象構文木のノードの型
 struct Node {
@@ -61,6 +63,14 @@ struct Node {
     Node *rhs;     // 右辺
     int val;       // kindがND_NUMの場合のみ使う
     int offset;    // kindがND_LVARの場合のみ使う
+    NodeVector *vector; // kindがND_BLOCKの場合のみ使う
+};
+
+// ノードベクタの型
+struct NodeVector {
+    Node **data;
+    int size;
+    int count;
 };
 
 typedef struct LVar LVar;
@@ -75,6 +85,8 @@ struct LVar {
 
 // ローカル変数
 LVar *locals;
+
+typedef struct NodeVector NodeVector;
 
 // パース結果
 extern Node *code[100];
@@ -104,3 +116,7 @@ Node *mul(void);
 Node *unary(void);
 Node *primary(void);
 void gen(Node *node);
+
+NodeVector *new_node_vector();
+void node_vector_add(NodeVector *vector, Node *node);
+Node *node_vector_ref(NodeVector *vector, int index);

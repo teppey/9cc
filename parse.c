@@ -215,7 +215,7 @@ void tokenize() {
         }
 
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' ||
-            *p == '<' || *p == '>' || *p == '=' || *p == ';') {
+            *p == '<' || *p == '>' || *p == '=' || *p == ';' || *p == '{' || *p == '}') {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
@@ -268,6 +268,15 @@ Node *stmt() {
     Node *node;
     Node *test;
     Node *body;
+
+    if (consume("{")) {
+        NodeVector *vector = new_node_vector();
+        while (!consume("}"))
+            node_vector_add(vector, stmt());
+        node = new_node(ND_BLOCK, NULL, NULL);
+        node->vector = vector;
+        return node;
+    }
 
     if (consume_if()) {
         expect("(");
