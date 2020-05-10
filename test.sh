@@ -59,5 +59,11 @@ assert 2 'if (3 == 4) return 1; else return 2;'
 assert 0 'a = 0; while (a > 1) a = a + 1; return a;'
 assert 3 'a = 0; while (a < 3) a = a + 1; return a;'
 assert 20 'a = 0; while (a < 3) if (a == 2) a = a * 10; else a = a + 1; return a;'
+assert 1 'for (;;) return 1;'
+assert 1 'for (a = 1;;) return a;'
+assert 2 'for (;0;) return 1; return 2;'
+assert 7 'for (i = 0; i < 7; i = i + 1) 0; return i;'
+assert 11 'a = 0; for (;; a = a + 1) if (a > 10) return a;'
+assert 4 'a = 0; for (i = 0; i < 2; i = i + 1) for (j = 0; j < 2; j = j + 1) a = a + 1; return a;'
 
 echo OK

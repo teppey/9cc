@@ -80,6 +80,15 @@ bool consume_while() {
     return true;
 }
 
+// 次のトークンがforのときには、トークンを1つ読み進めて真を返す。
+// それ以外の場合には偽を返す。
+bool consume_for() {
+    if (token->kind != TK_FOR)
+        return false;
+    token = token->next;
+    return true;
+}
+
 // 次のトークンが識別子のときには、そのトークンを返しトークンを1つ読み進める。
 // それ以外の場合にはNULLを返す。
 Token *consume_ident() {
@@ -185,6 +194,13 @@ void tokenize() {
             continue;
         }
 
+        // for
+        if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3])) {
+            cur = new_token(TK_FOR, cur, "for", 3);
+            p += 3;
+            continue;
+        }
+
         if ('a' <= *p && *p <= 'z') {
             char *q = p + 1;
             while ('a' <= *q && *q <= 'z')
@@ -272,6 +288,30 @@ Node *stmt() {
         expect(")");
         body = stmt();
         node = new_node(ND_WHILE, test, body);
+        return node;
+    }
+
+    if (consume_for()) {
+        Node *init = NULL;
+        Node *test = NULL;
+        Node *update = NULL;
+        expect("(");
+        if (!consume(";")) {
+            init = expr();
+            expect(";");
+        }
+        if (!consume(";")) {
+            test = expr();
+            expect(";");
+        }
+        if (!consume(")")) {
+            update = expr();
+            expect(")");
+        }
+        node = new_node(ND_FOR, init,
+                new_node(ND_FOR, test,
+                    new_node(ND_FOR, update,
+                        new_node(ND_FOR, stmt(), NULL))));
         return node;
     }
 
