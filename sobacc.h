@@ -86,8 +86,6 @@ struct LVar {
 // ローカル変数
 LVar *locals;
 
-typedef struct NodeVector NodeVector;
-
 // パース結果
 extern Node *code[100];
 
