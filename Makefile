@@ -11,6 +11,6 @@ test: sobacc
 	./test.sh
 
 clean:
-	rm -f sobacc *.o *~ tmp*
+	rm -f sobacc *.o *~ tmp* testfunc/*.o
 
 .PHONY: test clean

@@ -417,9 +417,19 @@ Node *primary() {
         return node;
     }
 
-    // 次のトークンが識別子ならローカル変数を表すノードを返す
+    // 次のトークンが識別子なら関数呼び出しかローカル変数を表すノードを返す
     Token *tok = consume_ident();
     if (tok) {
+        if (consume("(")) {
+            expect(")");
+            Func *func = calloc(1, sizeof(Func));
+            func->name = tok->str;
+            func->len = tok->len;
+            Node *node = new_node(ND_FUNC, NULL, NULL);
+            node->func = func;
+            return node;
+        }
+
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;
 

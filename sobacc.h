@@ -51,10 +51,12 @@ typedef enum {
     ND_WHILE,  // while
     ND_FOR,    // for
     ND_BLOCK,  // ブロック({...})
+    ND_FUNC,   // 関数呼び出し(foo())
 } NodeKind;
 
 typedef struct Node Node;
 typedef struct NodeVector NodeVector;
+typedef struct Func Func;
 
 // 抽象構文木のノードの型
 struct Node {
@@ -64,6 +66,7 @@ struct Node {
     int val;       // kindがND_NUMの場合のみ使う
     int offset;    // kindがND_LVARの場合のみ使う
     NodeVector *vector; // kindがND_BLOCKの場合のみ使う
+    Func *func;    // kindがND_FUNCの場合のみ使う
 };
 
 // ノードベクタの型
@@ -71,6 +74,12 @@ struct NodeVector {
     Node **data;
     int size;
     int count;
+};
+
+// 関数呼び出しの型
+struct Func {
+    char *name; // 関数の名前
+    int len;    // 名前の長さ
 };
 
 typedef struct LVar LVar;

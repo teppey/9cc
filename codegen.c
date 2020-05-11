@@ -105,6 +105,11 @@ void gen(Node *node) {
         return;
     }
 
+    if (node->kind == ND_FUNC) {
+        printf("  call %s\n", node->func->name);
+        return;
+    }
+
     switch (node->kind) {
         case ND_NUM:
             printf("  push %d\n", node->val);

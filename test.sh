@@ -17,6 +17,24 @@ assert() {
     fi
 }
 
+assert_func() {
+    file="$1"
+    expected="$2"
+    input="$3"
+
+    cc -o "$file.o" -c "$file"
+    ./sobacc "$input" > tmp.s
+    cc -o tmp tmp.s "$file.o"
+    actual="$(./tmp)"
+
+    if [ "$actual" = "$expected" ]; then
+        echo "$input => $actual"
+    else
+        echo "$input => $expected expected, but got $actual"
+        exit 1
+    fi
+}
+
 assert 0 '0;'
 assert 42 '42;'
 assert 21 "5+20-4;"
@@ -70,5 +88,7 @@ assert 2 '{ a = 1; return a + 1; }'
 assert 5 'a = 2; b = 3; if (a > 0) { a = a * a; b = a + 1; } return b;'
 assert 20 'a = b = 0; while (a < 10) { b = b + 1; a = a + 1; } return a + b;'
 assert 1 '{} return 1;'
+
+assert_func ./testfunc/foo.c "OK" 'foo();'
 
 echo OK
