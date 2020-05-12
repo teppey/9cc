@@ -106,6 +106,36 @@ void gen(Node *node) {
     }
 
     if (node->kind == ND_FUNC) {
+        // 第1引数
+        if (node->vector->count > 0) {
+            gen(node_vector_ref(node->vector, 0));
+            printf("  pop rdi\n");
+        }
+        // 第2引数
+        if (node->vector->count > 1) {
+            gen(node_vector_ref(node->vector, 1));
+            printf("  pop rsi\n");
+        }
+        // 第3引数
+        if (node->vector->count > 2) {
+            gen(node_vector_ref(node->vector, 2));
+            printf("  pop rdx\n");
+        }
+        // 第4引数
+        if (node->vector->count > 3) {
+            gen(node_vector_ref(node->vector, 3));
+            printf("  pop rcx\n");
+        }
+        // 第5引数
+        if (node->vector->count > 4) {
+            gen(node_vector_ref(node->vector, 4));
+            printf("  pop R8\n");
+        }
+        // 第6引数
+        if (node->vector->count > 5) {
+            gen(node_vector_ref(node->vector, 5));
+            printf("  pop R9\n");
+        }
         printf("  call %s\n", node->func->name);
         return;
     }

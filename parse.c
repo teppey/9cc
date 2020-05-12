@@ -215,7 +215,8 @@ void tokenize() {
         }
 
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' ||
-            *p == '<' || *p == '>' || *p == '=' || *p == ';' || *p == '{' || *p == '}') {
+            *p == '<' || *p == '>' || *p == '=' || *p == ';' || *p == '{' || *p == '}' ||
+            *p == ',') {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
@@ -421,12 +422,20 @@ Node *primary() {
     Token *tok = consume_ident();
     if (tok) {
         if (consume("(")) {
-            expect(")");
+            // 6つまでの引数をサポート
+            NodeVector *vector = new_node_vector();
+            for (int i = 0; !consume(")"); i++) {
+                if (i > 5)
+                    error("too many arguments: %s", tok->str);
+                node_vector_add(vector, expr());
+                consume(",");
+            }
             Func *func = calloc(1, sizeof(Func));
             func->name = tok->str;
             func->len = tok->len;
             Node *node = new_node(ND_FUNC, NULL, NULL);
             node->func = func;
+            node->vector = vector;
             return node;
         }
 

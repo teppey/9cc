@@ -90,5 +90,11 @@ assert 20 'a = b = 0; while (a < 10) { b = b + 1; a = a + 1; } return a + b;'
 assert 1 '{} return 1;'
 
 assert_func ./testfunc/foo.c "OK" 'foo();'
+assert_func ./testfunc/foo1.c "3" 'foo(3);'
+assert_func ./testfunc/foo2.c "7" 'foo(3, 4);'
+assert_func ./testfunc/foo3.c "12" 'foo(3, 4, 5);'
+assert_func ./testfunc/foo4.c "18" 'foo(3, 4, 5, 6);'
+assert_func ./testfunc/foo5.c "25" 'foo(3, 4, 5, 6, 7);'
+assert_func ./testfunc/foo6.c "33" 'foo(3, 4, 5, 6, 7, 8);'
 
 echo OK
