@@ -105,6 +105,7 @@ void gen(Node *node) {
         return;
     }
 
+    // TODO: call命令を発行する前にRSPが16の倍数になるように調整する
     if (node->kind == ND_FUNC) {
         // 第1引数
         if (node->vector->count > 0) {
