@@ -98,9 +98,6 @@ void gen(Node *node) {
     if (node->kind == ND_BLOCK) {
         for (int i = 0; i < node->vector->count; i++) {
             gen(node_vector_ref(node->vector, i));
-            // 1つ1つのステートメントは1つの値をスタックに残すので
-            // スタックが溢れないようにポップする
-            printf("  pop rax\n");
         }
         return;
     }
@@ -138,6 +135,59 @@ void gen(Node *node) {
             printf("  pop R9\n");
         }
         printf("  call %s\n", node->func->name);
+        // 関数の戻り値をスタックトップに入れる
+        printf("  push rax\n");
+        return;
+    }
+
+    if (node->kind == ND_DEF) {
+        printf(".global %s\n", node->def->name);
+        printf("%s:\n", node->def->name);
+
+        // プロローグ
+        printf("  push rbp\n");
+        printf("  mov rbp, rsp\n");
+
+        // パラメーターの個数分の領域をスタックに確保
+        // 最大6つまで
+
+        // 第1引数
+        if (node->vector->count > 0)
+            printf("  push rdi\n");
+        // 第2引数
+        if (node->vector->count > 1)
+            printf("  push rsi\n");
+        // 第3引数
+        if (node->vector->count > 2)
+            printf("  push rdx\n");
+        // 第4引数
+        if (node->vector->count > 3)
+            printf("  push rcx\n");
+        // 第5引数
+        if (node->vector->count > 4)
+            printf("  push R8\n");
+        // 第6引数
+        if (node->vector->count > 5)
+            printf("  push R9\n");
+
+        // ローカル変数の領域をスタックに確保
+        int params_offset = node->vector->count * 8;
+        int locals_offset = 0;
+        for (LVar *lvar = node->def->locals; lvar; lvar = lvar->next)
+            locals_offset += lvar->offset;
+        //assert(locals_offset >= params_offset);
+        if (locals_offset - params_offset > 0)
+            printf("  sub rsp, %d\n", locals_offset - params_offset);
+
+        // 関数本体
+        // TODO: スタック溢れへの対応
+        gen(node->lhs);
+
+        // エピローグ
+        // 最後の式の結果がRAXに残っているのでそれが返り値になる
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+        printf("  ret\n");
         return;
     }
 

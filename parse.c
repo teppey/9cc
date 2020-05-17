@@ -261,8 +261,67 @@ Node *new_node_num(int val) {
 void program() {
     int i = 0;
     while (!at_eof())
-        code[i++] = stmt();
+        code[i++] = function();
     code[i] = NULL;
+}
+
+Node *function() {
+    // 関数名
+    Token *tok = consume_ident();
+    if (!tok)
+        error_at(token->str, "関数名ではありません");
+
+    Def *def = calloc(1, sizeof(Def));
+    def->name = tok->str;
+    def->len = tok->len;
+    def->locals = NULL;
+
+    // パラメーターリスト
+    // 各パラメーターはローカル変数としてパース
+    expect("(");
+    NodeVector *params = new_node_vector();
+    while (!consume(")")) {
+        tok = consume_ident();
+        if (!tok)
+            error_at(token->str, "関数の引数が変数ではありません");
+
+        LVar *lvar = calloc(1, sizeof(LVar));
+        lvar->next = def->locals;
+        lvar->name = tok->str;
+        lvar->len = tok->len;
+        if (def->locals)
+            lvar->offset = def->locals->offset + 8;
+        else
+            lvar->offset = 8;
+        def->locals = lvar;
+        Node *param = new_node(ND_LVAR, NULL, NULL);
+        param->offset = lvar->offset;
+        node_vector_add(params, param);
+        consume(",");
+    }
+
+    // グローバル変数のローカル変数リストの値を一旦保存して
+    // 現在の関数のパラメータリストを設定
+    LVar *locals_save = locals;
+    locals = def->locals;
+
+    // 関数本体をパース
+    expect("{");
+    NodeVector *stmts = new_node_vector();
+    while (!consume("}"))
+        node_vector_add(stmts, stmt());
+    Node *body = new_node(ND_BLOCK, NULL, NULL);
+    body->vector = stmts;
+
+    // 関数定義のローカル変数リストを更新して
+    // グローバル変数を元に戻す
+    def->locals = locals;
+    locals = locals_save;
+
+    Node *node = new_node(ND_DEF, body, NULL);
+    node->def = def;
+    node->vector = params;
+    return node;
 }
 
 Node *stmt() {
