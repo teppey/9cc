@@ -89,6 +89,8 @@ assert 5 'main() { a = 2; b = 3; if (a > 0) { a = a * a; b = a + 1; } return b; 
 assert 20 'main() { a = b = 0; while (a < 10) { b = b + 1; a = a + 1; } return a + b; }'
 assert 1 'main() { {} return 1; }'
 assert 8 'fib(n) { if (n <= 2) return 1; return fib(n - 2) + fib(n - 1); } main() { return fib(6); }'
+assert 3 'main() { x = 3; y = &x; return *y; }'
+assert 3 'main() { x = 3; y = 5; z = &y + 8; return *z; }'
 
 assert_func ./testfunc/foo.c "OK" 'main() { foo(); }'
 assert_func ./testfunc/foo1.c "3" 'main() { foo(3); }'
