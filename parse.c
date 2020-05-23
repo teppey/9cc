@@ -89,6 +89,15 @@ bool consume_for() {
     return true;
 }
 
+// 次のトークンがintのときには、トークンを1つ読み進めて真を返す。
+// それ以外の場合には偽を返す。
+bool consume_int() {
+    if (token->kind != TK_INT)
+        return false;
+    token = token->next;
+    return true;
+}
+
 // 次のトークンが識別子のときには、そのトークンを返しトークンを1つ読み進める。
 // それ以外の場合にはNULLを返す。
 Token *consume_ident() {
@@ -197,6 +206,13 @@ void tokenize() {
         // for
         if (strncmp(p, "for", 3) == 0 && !is_alnum(p[3])) {
             cur = new_token(TK_FOR, cur, "for", 3);
+            p += 3;
+            continue;
+        }
+
+        // int
+        if (strncmp(p, "int", 3) == 0 && !is_alnum(p[3])) {
+            cur = new_token(TK_INT, cur, "int", 3);
             p += 3;
             continue;
         }
@@ -395,6 +411,29 @@ Node *stmt() {
 }
 
 Node *expr() {
+    //変数定義 例: int x;
+    if (consume_int()) {
+        Token *tok = consume_ident();
+        if (!tok)
+            error_at(token->str, "変数名ではありません");
+
+        LVar *lvar = find_lvar(tok);
+        if (lvar)
+            error_at(token->str, "変数名が重複しています");
+
+        lvar = calloc(1, sizeof(LVar));
+        lvar->next = locals;
+        lvar->name = tok->str;
+        lvar->len = tok->len;
+        if (locals)
+            lvar->offset = locals->offset + 8;
+        else
+            lvar->offset = 8;
+        Node *node = new_node(ND_LVAR, NULL, NULL);
+        node->offset = lvar->offset;
+        locals = lvar;
+        return node;
+    }
     return assign();
 }
 
@@ -509,16 +548,7 @@ Node *primary() {
         if (lvar) {
             node->offset = lvar->offset;
         } else {
-            lvar = calloc(1, sizeof(LVar));
-            lvar->next = locals;
-            lvar->name = tok->str;
-            lvar->len = tok->len;
-            if (locals)
-                lvar->offset = locals->offset + 8;
-            else
-                lvar->offset = 8;
-            node->offset = lvar->offset;
-            locals = lvar;
+            error_at(token->str, "未定義の変数です");
         }
         return node;
     }
