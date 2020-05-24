@@ -280,6 +280,9 @@ void program() {
 }
 
 Node *function() {
+    if (!consume_int())
+        error_at(token->str, "intではありません");
+
     // 関数名
     Token *tok = consume_ident();
     if (!tok)
@@ -295,6 +298,9 @@ Node *function() {
     expect("(");
     NodeVector *params = new_node_vector();
     while (!consume(")")) {
+        if (!consume_int())
+            error_at(token->str, "intではありません");
+
         tok = consume_ident();
         if (!tok)
             error_at(token->str, "関数の引数が変数ではありません");
