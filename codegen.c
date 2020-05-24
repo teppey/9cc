@@ -134,15 +134,15 @@ void gen(Node *node) {
             gen(node_vector_ref(node->vector, 5));
             printf("  pop R9\n");
         }
-        printf("  call %s\n", node->func->name);
+        printf("  call %.*s\n", node->func->len, node->func->name);
         // 関数の戻り値をスタックトップに入れる
         printf("  push rax\n");
         return;
     }
 
     if (node->kind == ND_DEF) {
-        printf(".global %s\n", node->def->name);
-        printf("%s:\n", node->def->name);
+        printf(".global %.*s\n", node->def->len, node->def->name);
+        printf("%.*s:\n", node->def->len, node->def->name);
 
         // プロローグ
         printf("  push rbp\n");
