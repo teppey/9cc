@@ -90,6 +90,7 @@ assert 20 'int main() { int a; int b; a = b = 0; while (a < 10) { b = b + 1; a =
 assert 1 'int main() { {} return 1; }'
 assert 8 'int fib(int n) { if (n <= 2) return 1; return fib(n - 2) + fib(n - 1); } int main() { return fib(6); }'
 assert 3 'int main() { int x; int y; x = 3; y = &x; return *y; }'
+assert 3 'int main() { int x; int y; int z; x = 3; y = &x; z = &y; return **z; }'
 assert 3 'int main() { int x; int y; int z; x = 3; y = 5; z = &y + 8; return *z; }'
 assert 15 'int foo(int x, int y) { return x * y; } int main() { return foo(3, 5); }'
 assert 3 'int main() { int x; int *y; y = &x; *y = 3; return x; }'
