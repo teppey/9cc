@@ -206,7 +206,10 @@ void gen(Node *node) {
             return;
         case ND_ASSIGN:
             // 左辺値をスタックにpush
-            gen_lval(node->lhs);
+            if (node->lhs->kind == ND_DEREF)
+                gen(node->lhs->lhs);
+             else
+                gen_lval(node->lhs);
             // 右辺値をスタックにpush
             gen(node->rhs);
 

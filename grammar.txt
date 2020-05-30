@@ -1,5 +1,5 @@
 program    = function*
-function   = "int" "*"* ident "(" ("int" "*"* ident)* ")" "{" stmt* "}"
+function   = "int" ident "(" ("int" "*"* ident)* ")" "{" stmt* "}"
 stmt       = expr ";"
            | "{" stmt* "}"
            | "if" "(" expr ")" stmt ("else" stmt)?

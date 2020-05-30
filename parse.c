@@ -280,6 +280,7 @@ void program() {
 }
 
 Node *function() {
+    // TODO: 戻り値にポインタ型が使用できるようにする
     if (!consume_int())
         error_at(token->str, "intではありません");
 
@@ -301,6 +302,16 @@ Node *function() {
         if (!consume_int())
             error_at(token->str, "intではありません");
 
+        Type *type = calloc(1, sizeof(Type));
+        type->ty = INT;
+        type->ptr_to = NULL;
+        while (consume("*")) {
+            Type *ptr = calloc(1, sizeof(Type));
+            ptr->ty = PTR;
+            ptr->ptr_to = type;
+            type = ptr;
+        }
+
         tok = consume_ident();
         if (!tok)
             error_at(token->str, "関数の引数が変数ではありません");
@@ -313,9 +324,11 @@ Node *function() {
             lvar->offset = def->locals->offset + 8;
         else
             lvar->offset = 8;
+        lvar->type = type;
         def->locals = lvar;
         Node *param = new_node(ND_LVAR, NULL, NULL);
         param->offset = lvar->offset;
+        param->type = lvar->type;
         node_vector_add(params, param);
         consume(",");
     }
@@ -417,6 +430,17 @@ Node *stmt() {
 Node *expr() {
     //変数定義 例: int x;
     if (consume_int()) {
+        // ポインタ
+        Type *type = calloc(1, sizeof(Type));
+        type->ty = INT;
+        type->ptr_to = NULL;
+        while (consume("*")) {
+            Type *ptr = calloc(1, sizeof(Type));
+            ptr->ty = PTR;
+            ptr->ptr_to = type;
+            type = ptr;
+        }
+
         Token *tok = consume_ident();
         if (!tok)
             error_at(token->str, "変数名ではありません");
@@ -433,8 +457,10 @@ Node *expr() {
             lvar->offset = locals->offset + 8;
         else
             lvar->offset = 8;
+        lvar->type = type;
         Node *node = new_node(ND_LVAR, NULL, NULL);
         node->offset = lvar->offset;
+        node->type = lvar->type;
         locals = lvar;
         return node;
     }
@@ -551,6 +577,7 @@ Node *primary() {
         LVar *lvar = find_lvar(tok);
         if (lvar) {
             node->offset = lvar->offset;
+            node->type = lvar->type;
         } else {
             error_at(token->str, "未定義の変数です");
         }

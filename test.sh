@@ -92,6 +92,7 @@ assert 8 'int fib(int n) { if (n <= 2) return 1; return fib(n - 2) + fib(n - 1);
 assert 3 'int main() { int x; int y; x = 3; y = &x; return *y; }'
 assert 3 'int main() { int x; int y; int z; x = 3; y = 5; z = &y + 8; return *z; }'
 assert 15 'int foo(int x, int y) { return x * y; } int main() { return foo(3, 5); }'
+assert 3 'int main() { int x; int *y; y = &x; *y = 3; return x; }'
 
 assert_func ./testfunc/foo.c "OK" 'int main() { foo(); }'
 assert_func ./testfunc/foo1.c "3" 'int main() { foo(3); }'

@@ -63,6 +63,7 @@ typedef struct NodeVector NodeVector;
 typedef struct LVar LVar;
 typedef struct Func Func;
 typedef struct Def Def;
+typedef struct Type Type;
 
 // 抽象構文木のノードの型
 struct Node {
@@ -74,6 +75,7 @@ struct Node {
     NodeVector *vector; // kindがND_BLOCK、ND_FUNC、ND_DEFの場合のみ使う
     Func *func;    // kindがND_FUNCの場合のみ使う
     Def *def;      // kindeがND_DEFの場合のみ使う
+    Type *type;    // kindがND_LVARの場合のみ使う
 };
 
 // ノードベクタの型
@@ -96,12 +98,19 @@ struct Def {
     LVar *locals;  // ローカル変数
 };
 
+// 変数の型を表す型
+struct Type {
+    enum { INT, PTR } ty;
+    struct Type *ptr_to;
+};
+
 // ローカル変数の型
 struct LVar {
     LVar *next; // 次の変数かNULL
     char *name; // 変数の名前
     int len;    // 名前の長さ
     int offset; // RBPからのオフセット
+    Type *type; // 変数の型
 };
 
 // ローカル変数
