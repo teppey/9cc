@@ -241,9 +241,25 @@ void gen(Node *node) {
 
     switch (node->kind) {
         case ND_ADD:
+            if (node->lhs->kind == ND_LVAR && node->lhs->type->ty == PTR) {
+                // ポインタの加算
+                // intへのポインタ、ポインタへのポインタのどちらかに決め打ち
+                if (node->lhs->type->ptr_to->ty == INT)
+                    printf("  imul rdi, 4\n"); // intへのポインタ
+                else
+                    printf("  imul rdi, 8\n"); // ポインタへのポインタ
+            }
             printf("  add rax, rdi\n");
             break;
         case ND_SUB:
+            if (node->lhs->kind == ND_LVAR && node->lhs->type->ty == PTR) {
+                // ポインタの減算
+                // intへのポインタ、ポインタへのポインタのどちらかに決め打ち
+                if (node->lhs->type->ptr_to->ty == INT)
+                    printf("  imul rdi, 4\n"); // intへのポインタ
+                else
+                    printf("  imul rdi, 8\n"); // ポインタへのポインタ
+            }
             printf("  sub rax, rdi\n");
             break;
         case ND_MUL:

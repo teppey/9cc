@@ -35,6 +35,25 @@ assert_func() {
     fi
 }
 
+assert_func_return() {
+    file="$1"
+    expected="$2"
+    input="$3"
+
+    cc -o "$file.o" -c "$file"
+    ./sobacc "$input" > tmp.s
+    cc -o tmp tmp.s "$file.o"
+    ./tmp
+    actual="$?"
+
+    if [ "$actual" = "$expected" ]; then
+        echo "$input => $actual"
+    else
+        echo "$input => $expected expected, but got $actual"
+        exit 1
+    fi
+}
+
 assert 0 'int main() { return 0; }'
 assert 42 'int main() { return 42; }'
 assert 21 'int main() { return 5+20-4; }'
@@ -102,5 +121,9 @@ assert_func ./testfunc/foo3.c "12" 'int main() { foo(3, 4, 5); }'
 assert_func ./testfunc/foo4.c "18" 'int main() { foo(3, 4, 5, 6); }'
 assert_func ./testfunc/foo5.c "25" 'int main() { foo(3, 4, 5, 6, 7); }'
 assert_func ./testfunc/foo6.c "33" 'int main() { foo(3, 4, 5, 6, 7, 8); }'
+assert_func_return ./testfunc/alloc4.c "1" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 0; return *q; }'
+assert_func_return ./testfunc/alloc4.c "2" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 1; return *q; }'
+assert_func_return ./testfunc/alloc4.c "4" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 2; return *q; }'
+assert_func_return ./testfunc/alloc4.c "8" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 3; return *q; }'
 
 echo OK
