@@ -220,7 +220,7 @@ void tokenize() {
 
         if ('a' <= *p && *p <= 'z') {
             char *q = p + 1;
-            while ('a' <= *q && *q <= 'z')
+            while (is_alnum(*q))
                 q++;
             int len = q - p;
             cur = new_token(TK_IDENT, cur, p, len);
