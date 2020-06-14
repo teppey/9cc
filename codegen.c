@@ -241,25 +241,9 @@ void gen(Node *node) {
 
     switch (node->kind) {
         case ND_ADD:
-            if (node->lhs->kind == ND_LVAR && node->lhs->type->ty == PTR) {
-                // ポインタの加算
-                // intへのポインタ、ポインタへのポインタのどちらかに決め打ち
-                if (node->lhs->type->ptr_to->ty == INT)
-                    printf("  imul rdi, 4\n"); // intへのポインタ
-                else
-                    printf("  imul rdi, 8\n"); // ポインタへのポインタ
-            }
             printf("  add rax, rdi\n");
             break;
         case ND_SUB:
-            if (node->lhs->kind == ND_LVAR && node->lhs->type->ty == PTR) {
-                // ポインタの減算
-                // intへのポインタ、ポインタへのポインタのどちらかに決め打ち
-                if (node->lhs->type->ptr_to->ty == INT)
-                    printf("  imul rdi, 4\n"); // intへのポインタ
-                else
-                    printf("  imul rdi, 8\n"); // ポインタへのポインタ
-            }
             printf("  sub rax, rdi\n");
             break;
         case ND_MUL:
@@ -288,6 +272,54 @@ void gen(Node *node) {
             printf("  cmp rax, rdi\n");
             printf("  setne al\n");
             printf("  movzb rax, al\n");
+            break;
+        case ND_PTR_ADD:
+            // ポインタの加算
+            // intへのポインタ、ポインタへのポインタのどちらかに決め打ち
+            if (is_pointer(node->lhs)) {
+                // 左辺がポインタ、 右辺が数値
+                if (node->lhs->type->ptr_to->ty == INT) {
+                    printf("  imul rdi, 4\n");
+                } else if (node->lhs->type->ptr_to->ty == PTR) {
+                    printf("  imul rdi, 8\n");
+                } else {
+                    assert(0);
+                }
+            } else if (is_pointer(node->rhs)) {
+                // 左辺が数値、右辺がポインタ
+                if (node->rhs->type->ptr_to->ty == INT) {
+                    printf("  imul rax, 4\n");
+                } else if (node->rhs->type->ptr_to->ty == PTR) {
+                    printf("  imul rax, 8\n");
+                }
+            } else {
+                assert(0);
+            }
+            printf("  add rax, rdi\n");
+            break;
+        case ND_PTR_SUB:
+            // ポインタの減算
+            // intへのポインタ、ポインタへのポインタのどちらかに決め打ち
+            if (is_pointer(node->lhs)) {
+                // 左辺がポインタ、 右辺が数値
+                if (node->lhs->type->ptr_to->ty == INT) {
+                    printf("  imul rdi, 4\n");
+                } else if (node->lhs->type->ptr_to->ty == PTR) {
+                    printf("  imul rdi, 8\n");
+                } else {
+                    assert(0);
+                }
+            } else if (is_pointer(node->rhs)) {
+                // 左辺が数値、右辺がポインタ
+                if (node->rhs->type->ptr_to->ty == INT) {
+                    printf("  imul rax, 4\n");
+                } else if (node->rhs->type->ptr_to->ty == PTR) {
+                    printf("  imul rax, 8\n");
+                }
+            } else {
+                assert(0);
+            }
+            printf("  sub rax, rdi\n");
             break;
     }
 

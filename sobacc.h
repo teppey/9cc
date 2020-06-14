@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -56,6 +57,8 @@ typedef enum {
     ND_DEF,    // 関数定義(foo(){})
     ND_ADDR,   // 単項&
     ND_DEREF,  // 単項*
+    ND_PTR_ADD, // ポインタの加算
+    ND_PTR_SUB, // ポインタの減算
 } NodeKind;
 
 typedef struct Node Node;
@@ -149,3 +152,6 @@ void gen(Node *node);
 NodeVector *new_node_vector();
 void node_vector_add(NodeVector *vector, Node *node);
 Node *node_vector_ref(NodeVector *vector, int index);
+
+extern bool is_pointer(Node *node);
+extern void add_type(Node *node);

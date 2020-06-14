@@ -505,15 +505,33 @@ Node *relational() {
 }
 
 Node *add() {
-    Node *node = mul();
+    Node *lhs = mul();
+    Node *rhs;
+
+    add_type(lhs);
 
     for (;;) {
-        if (consume("+"))
-            node = new_node(ND_ADD, node, mul());
-        else if (consume("-"))
-            node = new_node(ND_SUB, node, mul());
-        else
-            return node;
+        if (consume("+")) {
+            rhs = mul();
+            add_type(rhs);
+            if (is_pointer(lhs) || is_pointer(rhs)) {
+                lhs = new_node(ND_PTR_ADD, lhs, rhs);
+            } else {
+                lhs = new_node(ND_ADD, lhs, rhs);
+            }
+            add_type(lhs);
+        } else if (consume("-")) {
+            rhs = mul();
+            add_type(rhs);
+            if (is_pointer(lhs) || is_pointer(rhs)) {
+                lhs = new_node(ND_PTR_SUB, lhs, rhs);
+            } else {
+                lhs = new_node(ND_SUB, lhs, rhs);
+            }
+            add_type(lhs);
+        } else {
+            return lhs;
+        }
     }
 }
 

@@ -121,9 +121,20 @@ assert_func ./testfunc/foo3.c "12" 'int main() { foo(3, 4, 5); }'
 assert_func ./testfunc/foo4.c "18" 'int main() { foo(3, 4, 5, 6); }'
 assert_func ./testfunc/foo5.c "25" 'int main() { foo(3, 4, 5, 6, 7); }'
 assert_func ./testfunc/foo6.c "33" 'int main() { foo(3, 4, 5, 6, 7, 8); }'
+
 assert_func_return ./testfunc/alloc4.c "1" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 0; return *q; }'
 assert_func_return ./testfunc/alloc4.c "2" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 1; return *q; }'
 assert_func_return ./testfunc/alloc4.c "4" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 2; return *q; }'
 assert_func_return ./testfunc/alloc4.c "8" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 3; return *q; }'
+
+assert_func_return ./testfunc/alloc4.c "1" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = 0 + p; return *q; }'
+assert_func_return ./testfunc/alloc4.c "2" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = 1 + p; return *q; }'
+assert_func_return ./testfunc/alloc4.c "4" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = 2 + p; return *q; }'
+assert_func_return ./testfunc/alloc4.c "8" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = 3 + p; return *q; }'
+
+assert_func_return ./testfunc/alloc4.c "1" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = 0 + 0 + p; return *q; }'
+assert_func_return ./testfunc/alloc4.c "1" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = 0 + p + 0; return *q; }'
+assert_func_return ./testfunc/alloc4.c "2" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = 0 + p + 1; return *q; }'
+assert_func_return ./testfunc/alloc4.c "4" 'int main() { int *p; alloc4(&p, 1, 2, 4, 8); int *q; q = p + 3 - 1; return *q; }'
 
 echo OK
