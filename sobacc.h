@@ -140,6 +140,7 @@ Node *new_node_num(int val);
 void program(void);
 Node *function(void);
 Node *stmt(void);
+Node *declaration(void);
 Node *expr(void);
 Node *assign(void);
 Node *equality(void);

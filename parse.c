@@ -435,6 +435,8 @@ Node *stmt() {
 
     if (consume_return()) {
         node = new_node(ND_RETURN, expr(), NULL);
+    } else if (token->kind == TK_INT) {
+        node = declaration();
     } else {
         node = expr();
     }
@@ -443,43 +445,47 @@ Node *stmt() {
     return node;
 }
 
-Node *expr() {
-    //変数定義 例: int x;
-    if (consume_int()) {
-        // ポインタ
-        Type *type = calloc(1, sizeof(Type));
-        type->ty = INT;
-        type->ptr_to = NULL;
-        while (consume("*")) {
-            Type *ptr = calloc(1, sizeof(Type));
-            ptr->ty = PTR;
-            ptr->ptr_to = type;
-            type = ptr;
-        }
+//変数定義 例: int x;
+Node *declaration() {
+    if (!consume_int())
+        error_at(token->str, "intではありません");
 
-        Token *tok = consume_ident();
-        if (!tok)
-            error_at(token->str, "変数名ではありません");
-
-        LVar *lvar = find_lvar(tok);
-        if (lvar)
-            error_at(token->str, "変数名が重複しています");
-
-        lvar = calloc(1, sizeof(LVar));
-        lvar->next = locals;
-        lvar->name = tok->str;
-        lvar->len = tok->len;
-        if (locals)
-            lvar->offset = locals->offset + 8;
-        else
-            lvar->offset = 8;
-        lvar->type = type;
-        Node *node = new_node(ND_LVAR, NULL, NULL);
-        node->offset = lvar->offset;
-        node->type = lvar->type;
-        locals = lvar;
-        return node;
+    // ポインタ
+    Type *type = calloc(1, sizeof(Type));
+    type->ty = INT;
+    type->ptr_to = NULL;
+    while (consume("*")) {
+        Type *ptr = calloc(1, sizeof(Type));
+        ptr->ty = PTR;
+        ptr->ptr_to = type;
+        type = ptr;
     }
+
+    Token *tok = consume_ident();
+    if (!tok)
+        error_at(token->str, "変数名ではありません");
+
+    LVar *lvar = find_lvar(tok);
+    if (lvar)
+        error_at(token->str, "変数名が重複しています");
+
+    lvar = calloc(1, sizeof(LVar));
+    lvar->next = locals;
+    lvar->name = tok->str;
+    lvar->len = tok->len;
+    if (locals)
+        lvar->offset = locals->offset + 8;
+    else
+        lvar->offset = 8;
+    lvar->type = type;
+    Node *node = new_node(ND_LVAR, NULL, NULL);
+    node->offset = lvar->offset;
+    node->type = lvar->type;
+    locals = lvar;
+    return node;
+}
+
+Node *expr() {
     return assign();
 }
 

@@ -6,8 +6,9 @@ stmt       = expr ";"
            | "while" "(" expr ")" stmt
            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
            | "return" expr ";"
+           | declaration ";"
+declaration = "int" "*"* ident
 expr       = assign
-           | "int" "*"* ident
 assign     = equality ("=" assign)?
 equality   = relational ("==" relational | "!=" relational)*
 relational = add ("<" add | "<=" add | ">" add | ">=" add)*
