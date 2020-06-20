@@ -1,24 +1,24 @@
-program    = function*
-function   = "int" ident "(" ("int" "*"* ident)* ")" "{" stmt* "}"
-stmt       = expr ";"
-           | "{" stmt* "}"
-           | "if" "(" expr ")" stmt ("else" stmt)?
-           | "while" "(" expr ")" stmt
-           | "for" "(" expr? ";" expr? ";" expr? ")" stmt
-           | "return" expr ";"
-           | declaration ";"
+program     = function*
+function    = "int" ident "(" ("int" "*"* ident)* ")" "{" stmt* "}"
+stmt        = expr ";"
+            | "{" stmt* "}"
+            | "if" "(" expr ")" stmt ("else" stmt)?
+            | "while" "(" expr ")" stmt
+            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+            | "return" expr ";"
+            | declaration ";"
 declaration = "int" "*"* ident
-expr       = assign
-assign     = equality ("=" assign)?
-equality   = relational ("==" relational | "!=" relational)*
-relational = add ("<" add | "<=" add | ">" add | ">=" add)*
-add        = mul ("+" mul | "-" mul)*
-mul        = unary ("*" unary | "/" unary)*
-unary      = "sizeof" unary
-           | "+"? primary
-           | "-"? primary
-           | "*" unary
-           | "&" unary
-primary    = num
-           | ident ("(" expr* ")")?
-           | "(" expr ")"
+expr        = assign
+assign      = equality ("=" assign)?
+equality    = relational ("==" relational | "!=" relational)*
+relational  = add ("<" add | "<=" add | ">" add | ">=" add)*
+add         = mul ("+" mul | "-" mul)*
+mul         = unary ("*" unary | "/" unary)*
+unary       = "sizeof" unary
+            | "+"? primary
+            | "-"? primary
+            | "*" unary
+            | "&" unary
+primary     = num
+            | ident ("(" expr* ")")?
+            | "(" expr ")"
