@@ -71,15 +71,15 @@ typedef struct Type Type;
 
 // 抽象構文木のノードの型
 struct Node {
-    NodeKind kind; // ノードの型
+    NodeKind kind; // ノードの種類
     Node *lhs;     // 左辺
     Node *rhs;     // 右辺
     int val;       // kindがND_NUMの場合のみ使う
     int offset;    // kindがND_LVARの場合のみ使う
     NodeVector *vector; // kindがND_BLOCK、ND_FUNC、ND_DEFの場合のみ使う
     Func *func;    // kindがND_FUNCの場合のみ使う
-    Def *def;      // kindeがND_DEFの場合のみ使う
-    Type *type;    // kindがND_LVARの場合のみ使う
+    Def *def;      // kindがND_DEFの場合のみ使う
+    Type *type;    // ノードの型
 };
 
 // ノードベクタの型
