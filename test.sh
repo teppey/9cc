@@ -113,6 +113,13 @@ assert 3 'int main() { int x; int y; int z; x = 3; y = &x; z = &y; return **z; }
 assert 3 'int main() { int x; int y; int z; x = 3; y = 5; z = &y + 8; return *z; }'
 assert 15 'int foo(int x, int y) { return x * y; } int main() { return foo(3, 5); }'
 assert 3 'int main() { int x; int *y; y = &x; *y = 3; return x; }'
+assert 4 'int main() { int x; return sizeof(x); }'
+assert 4 'int main() { int x; return sizeof(x + 3); }'
+assert 8 'int main() { int *y; return sizeof(y); }'
+assert 8 'int main() { int *y; return sizeof(y + 3); }'
+assert 4 'int main() { int *y; return sizeof(*y); }'
+assert 4 'int main() { return sizeof(1); }'
+assert 4 'int main() { return sizeof(sizeof(1)); }'
 
 assert_func ./testfunc/foo.c "OK" 'int main() { foo(); }'
 assert_func ./testfunc/foo1.c "3" 'int main() { foo(3); }'

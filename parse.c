@@ -98,6 +98,15 @@ bool consume_int() {
     return true;
 }
 
+// 次のトークンがsizeofのときには、トークンを1つ読み進めて真を返す。
+// それ以外の場合には偽を返す。
+bool consume_sizeof() {
+    if (token->kind != TK_SIZEOF)
+        return false;
+    token = token->next;
+    return true;
+}
+
 // 次のトークンが識別子のときには、そのトークンを返しトークンを1つ読み進める。
 // それ以外の場合にはNULLを返す。
 Token *consume_ident() {
@@ -215,6 +224,13 @@ void tokenize() {
         if (strncmp(p, "int", 3) == 0 && !is_alnum(p[3])) {
             cur = new_token(TK_INT, cur, p, 3);
             p += 3;
+            continue;
+        }
+
+        // sizeof
+        if (strncmp(p, "sizeof", 6) == 0 && !is_alnum(p[6])) {
+            cur = new_token(TK_SIZEOF, cur, p, 6);
+            p += 6;
             continue;
         }
 
@@ -549,6 +565,18 @@ Node *mul() {
 }
 
 Node *unary() {
+    if (consume_sizeof()) {
+        Node *node = unary();
+        add_type(node);
+        assert(node->type);
+        if (node->type->ty == INT)
+            return new_node_num(4);
+        else if (node->type->ty == PTR)
+            return new_node_num(8);
+        else
+            error("サポートしていない型: %s", node->type->ty);
+    }
+
     if (consume("*"))
         return new_node(ND_DEREF, unary(), NULL);
     else if (consume("&"))
