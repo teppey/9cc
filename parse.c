@@ -246,7 +246,7 @@ void tokenize() {
 
         if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' ||
             *p == '<' || *p == '>' || *p == '=' || *p == ';' || *p == '{' || *p == '}' ||
-            *p == ',' || *p == '&') {
+            *p == ',' || *p == '&' || *p == '[' || *p == ']') {
             cur = new_token(TK_RESERVED, cur, p++, 1);
             continue;
         }
@@ -454,6 +454,7 @@ Node *declaration() {
     Type *type = calloc(1, sizeof(Type));
     type->ty = INT;
     type->ptr_to = NULL;
+    type->array_size = 0;
     while (consume("*")) {
         Type *ptr = calloc(1, sizeof(Type));
         ptr->ty = PTR;
@@ -469,14 +470,35 @@ Node *declaration() {
     if (lvar)
         error_at(token->str, "変数名が重複しています");
 
+    // TODO: 入れ子の配列
+    if (consume("[")) {
+        int array_size =  expect_number();
+        expect("]");
+        Type *array = calloc(1, sizeof(Type));
+        array->ty = ARRAY;
+        array->array_size = array_size;
+        array->ptr_to = type;
+        type = array;
+    }
+
     lvar = calloc(1, sizeof(LVar));
     lvar->next = locals;
     lvar->name = tok->str;
     lvar->len = tok->len;
-    if (locals)
-        lvar->offset = locals->offset + 8;
-    else
-        lvar->offset = 8;
+
+    int offset = locals ? locals->offset : 0;
+    if (type->ty == ARRAY) {
+        if (type->ptr_to->ty == INT) {
+            lvar->offset = type->array_size * 4 + offset;
+        } else if (type->ptr_to->ty == PTR) {
+            lvar->offset = type->array_size * 8 + offset;
+        } else {
+            error("入れ子の配列は未サポート");
+        }
+    } else {
+        lvar->offset = 8 + offset;
+    }
+
     lvar->type = type;
     Node *node = new_node(ND_LVAR, NULL, NULL);
     node->offset = lvar->offset;

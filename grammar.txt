@@ -7,7 +7,7 @@ stmt        = expr ";"
             | "for" "(" expr? ";" expr? ";" expr? ")" stmt
             | "return" expr ";"
             | declaration ";"
-declaration = "int" "*"* ident
+declaration = "int" "*"* ident ("[" num "]")?
 expr        = assign
 assign      = equality ("=" assign)?
 equality    = relational ("==" relational | "!=" relational)*
