@@ -174,7 +174,7 @@ void gen(Node *node) {
         int params_offset = node->vector->count * 8;
         int locals_offset = 0;
         for (LVar *lvar = node->def->locals; lvar; lvar = lvar->next)
-            locals_offset += lvar->offset;
+            locals_offset += 8;
         //assert(locals_offset >= params_offset);
         if (locals_offset - params_offset > 0)
             printf("  sub rsp, %d\n", locals_offset - params_offset);
