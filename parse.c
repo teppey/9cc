@@ -318,10 +318,7 @@ Node *function() {
         if (!consume_int())
             error_at(token->str, "intではありません");
 
-        Type *type = calloc(1, sizeof(Type));
-        type->ty = INT;
-        type->size = 8;
-        type->ptr_to = NULL;
+        Type *type = int_type;
         while (consume("*")) {
             Type *ptr = calloc(1, sizeof(Type));
             ptr->ty = PTR;
@@ -453,11 +450,7 @@ Node *declaration() {
         error_at(token->str, "intではありません");
 
     // ポインタ
-    Type *type = calloc(1, sizeof(Type));
-    type->ty = INT;
-    type->size = 8;
-    type->ptr_to = NULL;
-    type->array_size = 0;
+    Type *type = int_type;
     while (consume("*")) {
         Type *ptr = calloc(1, sizeof(Type));
         ptr->ty = PTR;

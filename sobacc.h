@@ -157,5 +157,7 @@ NodeVector *new_node_vector();
 void node_vector_add(NodeVector *vector, Node *node);
 Node *node_vector_ref(NodeVector *vector, int index);
 
+// type.c
 extern bool is_pointer(Node *node);
 extern void add_type(Node *node);
+extern Type *int_type;

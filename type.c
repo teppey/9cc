@@ -1,6 +1,6 @@
 #include "sobacc.h"
 
-Type *int_type = &(Type){ INT, 8 };
+Type *int_type = &(Type){ INT, 8, NULL, 0 };
 
 Type *pointer_to(Type *base) {
     Type *t = calloc(1, sizeof(Type));
