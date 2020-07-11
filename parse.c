@@ -320,10 +320,12 @@ Node *function() {
 
         Type *type = calloc(1, sizeof(Type));
         type->ty = INT;
+        type->size = 8;
         type->ptr_to = NULL;
         while (consume("*")) {
             Type *ptr = calloc(1, sizeof(Type));
             ptr->ty = PTR;
+            ptr->size = 8;
             ptr->ptr_to = type;
             type = ptr;
         }
@@ -337,9 +339,9 @@ Node *function() {
         lvar->name = tok->str;
         lvar->len = tok->len;
         if (def->locals)
-            lvar->offset = def->locals->offset + 8;
+            lvar->offset = def->locals->offset + type->size;
         else
-            lvar->offset = 8;
+            lvar->offset = type->size;
         lvar->type = type;
         def->locals = lvar;
         Node *param = new_node(ND_LVAR, NULL, NULL);
@@ -453,11 +455,13 @@ Node *declaration() {
     // ポインタ
     Type *type = calloc(1, sizeof(Type));
     type->ty = INT;
+    type->size = 8;
     type->ptr_to = NULL;
     type->array_size = 0;
     while (consume("*")) {
         Type *ptr = calloc(1, sizeof(Type));
         ptr->ty = PTR;
+        ptr->size = 8;
         ptr->ptr_to = type;
         type = ptr;
     }
@@ -476,6 +480,7 @@ Node *declaration() {
         expect("]");
         Type *array = calloc(1, sizeof(Type));
         array->ty = ARRAY;
+        array->size = type->size * array_size;
         array->array_size = array_size;
         array->ptr_to = type;
         type = array;
@@ -485,20 +490,7 @@ Node *declaration() {
     lvar->next = locals;
     lvar->name = tok->str;
     lvar->len = tok->len;
-
-    int offset = locals ? locals->offset : 0;
-    if (type->ty == ARRAY) {
-        if (type->ptr_to->ty == INT) {
-            lvar->offset = type->array_size * 4 + offset;
-        } else if (type->ptr_to->ty == PTR) {
-            lvar->offset = type->array_size * 8 + offset;
-        } else {
-            error("入れ子の配列は未サポート");
-        }
-    } else {
-        lvar->offset = 8 + offset;
-    }
-
+    lvar->offset = (locals ? locals->offset : 0) + type->size;
     lvar->type = type;
     Node *node = new_node(ND_LVAR, NULL, NULL);
     node->offset = lvar->offset;
@@ -594,6 +586,7 @@ Node *mul() {
 
 Node *unary() {
     if (consume_sizeof()) {
+        // TODO: 配列への対応
         Node *node = unary();
         add_type(node);
         assert(node->type);

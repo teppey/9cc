@@ -105,6 +105,7 @@ struct Def {
 // 変数の型を表す型
 struct Type {
     enum { INT, PTR, ARRAY } ty;
+    int size;
     struct Type *ptr_to;
     size_t array_size;
 };

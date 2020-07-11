@@ -1,16 +1,18 @@
 #include "sobacc.h"
 
-Type *int_type = &(Type){ INT };
+Type *int_type = &(Type){ INT, 8 };
 
 Type *pointer_to(Type *base) {
     Type *t = calloc(1, sizeof(Type));
     t->ty = PTR;
+    t->size = 8;
     t->ptr_to = base;
     return t;
 }
 
 bool is_pointer(Node *node) {
     return (node->kind == ND_LVAR && node->type->ty == PTR) ||
+           (node->kind == ND_LVAR && node->type->ty == ARRAY) ||
             node->kind == ND_PTR_ADD ||
             node->kind == ND_PTR_SUB;
 }
@@ -50,10 +52,13 @@ void add_type(Node *node) {
             assert(node->type);
             return;
         case ND_ADDR:
-            node->type = pointer_to(node->lhs->type);
+            if (node->lhs->type->ty == ARRAY)
+                node->type = pointer_to(node->lhs->type->ptr_to);
+            else
+                node->type = pointer_to(node->lhs->type);
             return;
         case ND_DEREF:
-            if (node->lhs->type->ty == PTR)
+            if (node->lhs->type->ty == PTR || node->lhs->type->ty == ARRAY)
                 node->type = node->lhs->type->ptr_to;
             else
                 node->type = int_type;

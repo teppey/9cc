@@ -2,6 +2,14 @@
 
 static int label_count;
 
+// スタックトップの値を変数のアドレスとして
+// その変数の値をスタックトップに設定する
+static void load() {
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
+}
+
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR)
         error("代入の左辺値が変数ではありません");
@@ -174,7 +182,7 @@ void gen(Node *node) {
         int params_offset = node->vector->count * 8;
         int locals_offset = 0;
         for (LVar *lvar = node->def->locals; lvar; lvar = lvar->next)
-            locals_offset += 8;
+            locals_offset += lvar->type->size;
         //assert(locals_offset >= params_offset);
         if (locals_offset - params_offset > 0)
             printf("  sub rsp, %d\n", locals_offset - params_offset);
@@ -197,12 +205,8 @@ void gen(Node *node) {
             return;
         case ND_LVAR:
             gen_lval(node);
-            // 変数のアドレスをRAXに入れる
-            printf("  pop rax\n");
-            // 変数の値をRAXにロード
-            printf("  mov rax, [rax]\n");
-            // 変数の値をスタックトップに入れる
-            printf("  push rax\n");
+            if (node->type->ty != ARRAY)
+                load();
             return;
         case ND_ASSIGN:
             // 左辺値をスタックにpush
@@ -227,9 +231,8 @@ void gen(Node *node) {
             return;
         case ND_DEREF:
             gen(node->lhs);
-            printf("  pop rax\n");
-            printf("  mov rax, [rax]\n");
-            printf("  push rax\n");
+            if (node->type->ty != ARRAY)
+                load();
             return;
     }
 
@@ -274,48 +277,20 @@ void gen(Node *node) {
             printf("  movzb rax, al\n");
             break;
         case ND_PTR_ADD:
-            // ポインタの加算
-            // intへのポインタ、ポインタへのポインタのどちらかに決め打ち
             if (is_pointer(node->lhs)) {
-                // 左辺がポインタ、 右辺が数値
-                if (node->lhs->type->ptr_to->ty == INT) {
-                    printf("  imul rdi, 4\n");
-                } else if (node->lhs->type->ptr_to->ty == PTR) {
-                    printf("  imul rdi, 8\n");
-                } else {
-                    assert(0);
-                }
+                printf("  imul rdi, %d\n", node->lhs->type->ptr_to->size);
             } else if (is_pointer(node->rhs)) {
-                // 左辺が数値、右辺がポインタ
-                if (node->rhs->type->ptr_to->ty == INT) {
-                    printf("  imul rax, 4\n");
-                } else if (node->rhs->type->ptr_to->ty == PTR) {
-                    printf("  imul rax, 8\n");
-                }
+                printf("  imul rax, %d\n", node->rhs->type->ptr_to->size);
             } else {
                 assert(0);
             }
             printf("  add rax, rdi\n");
             break;
         case ND_PTR_SUB:
-            // ポインタの減算
-            // intへのポインタ、ポインタへのポインタのどちらかに決め打ち
             if (is_pointer(node->lhs)) {
-                // 左辺がポインタ、 右辺が数値
-                if (node->lhs->type->ptr_to->ty == INT) {
-                    printf("  imul rdi, 4\n");
-                } else if (node->lhs->type->ptr_to->ty == PTR) {
-                    printf("  imul rdi, 8\n");
-                } else {
-                    assert(0);
-                }
+                printf("  imul rdi, %d\n", node->lhs->type->ptr_to->size);
             } else if (is_pointer(node->rhs)) {
-                // 左辺が数値、右辺がポインタ
-                if (node->rhs->type->ptr_to->ty == INT) {
-                    printf("  imul rax, 4\n");
-                } else if (node->rhs->type->ptr_to->ty == PTR) {
-                    printf("  imul rax, 8\n");
-                }
+                printf("  imul rax, %d\n", node->rhs->type->ptr_to->size);
             } else {
                 assert(0);
             }
