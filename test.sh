@@ -121,8 +121,9 @@ assert 4 'int main() { int *y; return sizeof(*y); }'
 assert 4 'int main() { return sizeof(1); }'
 assert 4 'int main() { return sizeof(sizeof(1)); }'
 assert 1 'int main() { int a[10]; return 1; }'
-
 assert 3 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; return *p + *(p + 1); }'
+assert 4 'int main() { int a[2]; a[0] = 1; a[1] = 3; return a[0] + a[1]; }'
+assert 1 'int main() { int a[1]; a[0] = 1; return 0[a]; }'
 
 assert_func ./testfunc/foo.c "OK" 'int main() { foo(); }'
 assert_func ./testfunc/foo1.c "3" 'int main() { foo(3); }'

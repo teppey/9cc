@@ -20,5 +20,7 @@ unary       = "sizeof" unary
             | "*" unary
             | "&" unary
 primary     = num
-            | ident ("(" expr* ")")?
+            | ident ("(" expr* ")")
+            | ident ("[" expr "]")
+            | ident
             | "(" expr ")"

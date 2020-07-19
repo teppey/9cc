@@ -610,7 +610,7 @@ Node *primary() {
         return node;
     }
 
-    // 次のトークンが識別子なら関数呼び出しかローカル変数を表すノードを返す
+    // 次のトークンが識別子なら関数呼び出しか配列への添字でのアクセスかローカル変数を表すノードを返す
     Token *tok = consume_ident();
     if (tok) {
         if (consume("(")) {
@@ -631,6 +631,23 @@ Node *primary() {
             return node;
         }
 
+        // 配列の添字: x[y]は*(x+y)と等価
+        if (consume("[")) {
+            Node *rhs = expr();
+            expect("]");
+            LVar *lvar = find_lvar(tok);
+            if (lvar) {
+                // 例: a[3]
+                Node *lhs = calloc(1, sizeof(Node));
+                lhs->kind = ND_LVAR;
+                lhs->offset = lvar->offset;
+                lhs->type = lvar->type;
+                return new_node(ND_DEREF, new_node(ND_PTR_ADD, lhs, rhs), NULL);
+            } else {
+                error_at(token->str, "未定義の変数です");
+            }
+        }
+
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_LVAR;
 
@@ -644,6 +661,13 @@ Node *primary() {
         return node;
     }
 
-    // そうでなければ数値のはず
-    return new_node_num(expect_number());
+    int num = expect_number();
+    if (consume("[")) {
+        // 例: 3[a]
+        Node *rhs = expr();
+        expect("]");
+        Node *lhs = new_node_num(num);
+        return new_node(ND_DEREF, new_node(ND_PTR_ADD, lhs, rhs), NULL);
+    }
+    return new_node_num(num);
 }
