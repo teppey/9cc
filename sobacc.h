@@ -102,9 +102,16 @@ struct Def {
     LVar *locals;  // ローカル変数
 };
 
+// 変数の型の種類
+typedef enum {
+    INT,
+    PTR,
+    ARRAY,
+} TypeKind;
+
 // 変数の型を表す型
 struct Type {
-    enum { INT, PTR, ARRAY } ty;
+    TypeKind ty;
     int size;
     struct Type *ptr_to;
     size_t array_size;
