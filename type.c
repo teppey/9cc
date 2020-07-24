@@ -3,11 +3,7 @@
 Type *int_type = &(Type){ INT, 8, NULL, 0 };
 
 Type *pointer_to(Type *base) {
-    Type *t = calloc(1, sizeof(Type));
-    t->ty = PTR;
-    t->size = 8;
-    t->ptr_to = base;
-    return t;
+    return new_type(PTR, 8, base, 0);
 }
 
 bool is_pointer(Node *node) {
@@ -71,4 +67,13 @@ void add_type(Node *node) {
                 node->type = node->rhs->type;
             return;
     }
+}
+
+Type *new_type(TypeKind ty, int size, Type *ptr_to, size_t array_size) {
+    Type *type = calloc(1, sizeof(Type));
+    type->ty = ty;
+    type->size = size;
+    type->ptr_to = ptr_to;
+    type->array_size = array_size;
+    return type;
 }

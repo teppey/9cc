@@ -168,3 +168,4 @@ Node *node_vector_ref(NodeVector *vector, int index);
 extern bool is_pointer(Node *node);
 extern void add_type(Node *node);
 extern Type *int_type;
+extern Type *new_type(TypeKind ty, int size, Type *ptr_to, size_t array_size);

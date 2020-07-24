@@ -320,10 +320,7 @@ Node *function() {
 
         Type *type = int_type;
         while (consume("*")) {
-            Type *ptr = calloc(1, sizeof(Type));
-            ptr->ty = PTR;
-            ptr->size = 8;
-            ptr->ptr_to = type;
+            Type *ptr = new_type(PTR, 8, type, 0);
             type = ptr;
         }
 
@@ -452,10 +449,7 @@ Node *declaration() {
     // ポインタ
     Type *type = int_type;
     while (consume("*")) {
-        Type *ptr = calloc(1, sizeof(Type));
-        ptr->ty = PTR;
-        ptr->size = 8;
-        ptr->ptr_to = type;
+        Type *ptr = new_type(PTR, 8, type, 0);
         type = ptr;
     }
 
@@ -471,11 +465,7 @@ Node *declaration() {
     if (consume("[")) {
         int array_size =  expect_number();
         expect("]");
-        Type *array = calloc(1, sizeof(Type));
-        array->ty = ARRAY;
-        array->size = type->size * array_size;
-        array->array_size = array_size;
-        array->ptr_to = type;
+        Type *array = new_type(ARRAY, type->size * array_size, type, array_size);
         type = array;
     }
 
