@@ -48,6 +48,8 @@ typedef enum {
     ND_NEQ, // !=
     ND_ASSIGN, // =
     ND_LVAR,   // ローカル変数
+    ND_GVAR_DECL, // グローバル変数の定義
+    ND_GVAR_REF,  // グローバル変数の参照
     ND_RETURN, // return
     ND_IF,     // if
     ND_ELSE,   // else
@@ -65,6 +67,7 @@ typedef enum {
 typedef struct Node Node;
 typedef struct NodeVector NodeVector;
 typedef struct LVar LVar;
+typedef struct GVar GVar;
 typedef struct Func Func;
 typedef struct Def Def;
 typedef struct Type Type;
@@ -80,6 +83,7 @@ struct Node {
     Func *func;    // kindがND_FUNCの場合のみ使う
     Def *def;      // kindがND_DEFの場合のみ使う
     Type *type;    // ノードの型
+    GVar *gvar;    // kindがND_GVAR_DECL, ND_GVAR_REFの場合のみ使う
 };
 
 // ノードベクタの型
@@ -126,8 +130,19 @@ struct LVar {
     Type *type; // 変数の型
 };
 
-// ローカル変数
+// ローカル変数のリスト
 LVar *locals;
+
+// グローバル変数の型
+struct GVar {
+    GVar *next;   // 次の変数かNULL
+    char *name;   // 変数の名前
+    int len;      // 名前の長さ
+    Type *type;   // 変数の型
+};
+
+// グローバル変数のリスト
+GVar *globals;
 
 // パース結果
 extern Node *code[100];
@@ -135,6 +150,7 @@ extern Node *code[100];
 // 入力プログラム
 extern char *user_input;
 
+// parse.c
 void error_at(char *loc, char *fmt, ...);
 void error(char *fmt, ...);
 bool consume(char *op);
@@ -147,9 +163,11 @@ void tokenize(void);
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 void program(void);
-Node *function(void);
-Node *stmt(void);
 Node *declaration(void);
+Node *func_decl(Type *return_type, Token *name);
+Node *gvar_decl(Type *type, Token *name);
+Node *lvar_decl();
+Node *stmt(void);
 Node *expr(void);
 Node *assign(void);
 Node *equality(void);
@@ -158,6 +176,8 @@ Node *add(void);
 Node *mul(void);
 Node *unary(void);
 Node *primary(void);
+
+// codegen.c
 void gen(Node *node);
 
 NodeVector *new_node_vector();

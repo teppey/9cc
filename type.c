@@ -9,6 +9,8 @@ Type *pointer_to(Type *base) {
 bool is_pointer(Node *node) {
     return (node->kind == ND_LVAR && node->type->ty == PTR) ||
            (node->kind == ND_LVAR && node->type->ty == ARRAY) ||
+           (node->kind == ND_GVAR_REF && node->type->ty == PTR) ||
+           (node->kind == ND_GVAR_REF && node->type->ty == ARRAY) ||
             node->kind == ND_PTR_ADD ||
             node->kind == ND_PTR_SUB;
 }

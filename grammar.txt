@@ -1,13 +1,14 @@
-program     = function*
-function    = "int" ident "(" ("int" "*"* ident)* ")" "{" stmt* "}"
+program     = declaration*
+declaration = func_decl | var_decl
+func_decl   = "int" ident "(" ("int" "*"* ident)* ")" "{" stmt* "}"
 stmt        = expr ";"
             | "{" stmt* "}"
             | "if" "(" expr ")" stmt ("else" stmt)?
             | "while" "(" expr ")" stmt
             | "for" "(" expr? ";" expr? ";" expr? ")" stmt
             | "return" expr ";"
-            | declaration ";"
-declaration = "int" "*"* ident ("[" num "]")?
+            | var_decl ";"
+var_decl    = "int" "*"* ident ("[" num "]")?
 expr        = assign
 assign      = equality ("=" assign)?
 equality    = relational ("==" relational | "!=" relational)*

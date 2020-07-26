@@ -125,6 +125,17 @@ assert 3 'int main() { int a[2]; *a = 1; *(a + 1) = 2; int *p; p = a; return *p 
 assert 4 'int main() { int a[2]; a[0] = 1; a[1] = 3; return a[0] + a[1]; }'
 assert 1 'int main() { int a[1]; a[0] = 1; return 0[a]; }'
 
+# グローバル変数
+assert 0 'int a; int main() { return a; }'
+assert 1 'int a; int main() { a = 1; return a; }'
+assert 0 'int a[4]; int main() { a[0] = 0; a[1] = 1; a[2] = 2; a[3] = 3; return a[0]; }'
+assert 1 'int a[4]; int main() { a[0] = 0; a[1] = 1; a[2] = 2; a[3] = 3; return a[1]; }'
+assert 2 'int a[4]; int main() { a[0] = 0; a[1] = 1; a[2] = 2; a[3] = 3; return a[2]; }'
+assert 3 'int a[4]; int main() { a[0] = 0; a[1] = 1; a[2] = 2; a[3] = 3; return a[3]; }'
+assert 4 'int a; int main() { return sizeof(a); }'
+assert 32 'int a[4]; int main() { return sizeof(a); }'
+assert 2 'int a; int main() { a = 1; int a; a = 2; return a; }'
+
 assert_func ./testfunc/foo.c "OK" 'int main() { foo(); }'
 assert_func ./testfunc/foo1.c "3" 'int main() { foo(3); }'
 assert_func ./testfunc/foo2.c "7" 'int main() { foo(3, 4); }'

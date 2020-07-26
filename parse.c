@@ -265,9 +265,17 @@ void tokenize() {
     token = head.next;
 }
 
-// 変数を名前で検索する。見つからなかった場合はNULLを返す。
+// ローカル変数を名前で検索する。見つからなかった場合はNULLを返す。
 LVar *find_lvar(Token *tok) {
     for (LVar *var = locals; var; var = var->next)
+        if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+            return var;
+    return NULL;
+}
+
+// グローバル変数を名前で検索する。見つからなかった場合はNULLを返す。
+GVar *find_gvar(Token *tok) {
+    for (GVar *var = globals; var; var = var->next)
         if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
             return var;
     return NULL;
@@ -291,23 +299,41 @@ Node *new_node_num(int val) {
 void program() {
     int i = 0;
     while (!at_eof())
-        code[i++] = function();
+        code[i++] = declaration();
     code[i] = NULL;
 }
 
-Node *function() {
-    // TODO: 戻り値にポインタ型が使用できるようにする
+Node *declaration() {
+    // 型名の前半を読む
     if (!consume_int())
         error_at(token->str, "intではありません");
 
-    // 関数名
+    // ポインタ
+    Type *type = int_type;
+    while (consume("*")) {
+        Type *ptr = new_type(PTR, 8, type, 0);
+        type = ptr;
+    }
+
+    // 識別子が来ているはずなのでそれを読む
     Token *tok = consume_ident();
     if (!tok)
-        error_at(token->str, "関数名ではありません");
+        error_at(token->str, "識別子ではありません");
 
+    // トークンを1つ先読みし"(" なら関数定義、そうでなければグローバル変数定義
+    if (token->kind == TK_RESERVED && memcmp(token->str, "(", 1) == 0)
+        return func_decl(type, tok);
+    else
+        return gvar_decl(type, tok);
+}
+
+// 関数定義のパース
+// 型と識別子までのパースは終わって引数でそれらが渡される前提
+// TODO: 戻り値の型を保持する
+Node *func_decl(Type *return_type, Token *name) {
     Def *def = calloc(1, sizeof(Def));
-    def->name = tok->str;
-    def->len = tok->len;
+    def->name = name->str;
+    def->len = name->len;
     def->locals = NULL;
 
     // パラメーターリスト
@@ -324,9 +350,9 @@ Node *function() {
             type = ptr;
         }
 
-        tok = consume_ident();
+        Token *tok = consume_ident();
         if (!tok)
-            error_at(token->str, "関数の引数が変数ではありません");
+            error_at(token->str, "関数の引数が識別子ではありません");
 
         LVar *lvar = calloc(1, sizeof(LVar));
         lvar->next = def->locals;
@@ -345,7 +371,7 @@ Node *function() {
         consume(",");
     }
 
-    // グローバル変数のローカル変数リストの値を一旦保存して
+    // グローバル変数であるローカル変数リストの値を一旦保存して
     // 現在の関数のパラメータリストを設定
     LVar *locals_save = locals;
     locals = def->locals;
@@ -432,7 +458,7 @@ Node *stmt() {
     if (consume_return()) {
         node = new_node(ND_RETURN, expr(), NULL);
     } else if (token->kind == TK_INT) {
-        node = declaration();
+        node = lvar_decl();
     } else {
         node = expr();
     }
@@ -441,8 +467,36 @@ Node *stmt() {
     return node;
 }
 
-//変数定義 例: int x;
-Node *declaration() {
+// グローバル変数定義をパース
+// 型と識別子までのパースは終わって引数でそれらが渡される前提
+// TODO: gvar_declとlvar_declをvar_declとしてまとめる(型の前半部分をパースする関数を用意する)
+Node *gvar_decl(Type *type, Token *name) {
+    // TODO: 変数名の重複への対応
+
+    // TODO: 入れ子の配列
+    if (consume("[")) {
+        int array_size =  expect_number();
+        expect("]");
+        Type *array = new_type(ARRAY, type->size * array_size, type, array_size);
+        type = array;
+    }
+    expect(";");
+
+    GVar *gvar = calloc(1, sizeof(GVar));
+    gvar->next = globals;
+    gvar->name = name->str;
+    gvar->len = name->len;
+    gvar->type = type;
+    globals = gvar;
+
+    Node *node = new_node(ND_GVAR_DECL, NULL, NULL);
+    node->type = gvar->type;
+    node->gvar = gvar;
+    return node;
+}
+
+// ローカル変数定義をパース
+Node *lvar_decl() {
     if (!consume_int())
         error_at(token->str, "intではありません");
 
@@ -570,6 +624,7 @@ Node *mul() {
 Node *unary() {
     if (consume_sizeof()) {
         // TODO: 配列への対応
+        // TODO: node->type->sizeを返す
         Node *node = unary();
         add_type(node);
         assert(node->type);
@@ -578,7 +633,7 @@ Node *unary() {
         else if (node->type->ty == PTR)
             return new_node_num(8);
         else
-            error("サポートしていない型: %s", node->type->ty);
+            return new_node_num(node->type->size);
     }
 
     if (consume("*"))
@@ -600,7 +655,10 @@ Node *primary() {
         return node;
     }
 
-    // 次のトークンが識別子なら関数呼び出しか配列への添字でのアクセスかローカル変数を表すノードを返す
+    // 次のトークンが識別子なら次のいずれか:
+    //   - 関数呼び出し
+    //   - 配列への添字でのアクセス
+    //   - ローカル変数を表すノードを返す
     Token *tok = consume_ident();
     if (tok) {
         if (consume("(")) {
@@ -625,6 +683,8 @@ Node *primary() {
         if (consume("[")) {
             Node *rhs = expr();
             expect("]");
+
+            // ローカル変数を探す
             LVar *lvar = find_lvar(tok);
             if (lvar) {
                 // 例: a[3]
@@ -633,22 +693,43 @@ Node *primary() {
                 lhs->offset = lvar->offset;
                 lhs->type = lvar->type;
                 return new_node(ND_DEREF, new_node(ND_PTR_ADD, lhs, rhs), NULL);
-            } else {
-                error_at(token->str, "未定義の変数です");
             }
+
+            // ローカル変数が見つからなければグローバル変数を探す
+            GVar *gvar = find_gvar(tok);
+            if (gvar) {
+                // 例: a[3]
+                Node *lhs = calloc(1, sizeof(Node));
+                lhs->kind = ND_GVAR_REF;
+                lhs->gvar = gvar;
+                lhs->type = gvar->type;
+                return new_node(ND_DEREF, new_node(ND_PTR_ADD, lhs, rhs), NULL);
+            }
+
+            error_at(token->str, "未定義の変数です");
         }
 
         Node *node = calloc(1, sizeof(Node));
-        node->kind = ND_LVAR;
 
+        // ローカル変数を探す
         LVar *lvar = find_lvar(tok);
         if (lvar) {
+            node->kind = ND_LVAR;
             node->offset = lvar->offset;
             node->type = lvar->type;
-        } else {
-            error_at(token->str, "未定義の変数です");
+            return node;
         }
-        return node;
+
+        // ローカル変数が見つからなければグローバル変数を探す
+        GVar *gvar = find_gvar(tok);
+        if (gvar) {
+            node->kind = ND_GVAR_REF;
+            node->gvar = gvar;
+            node->type = gvar->type;
+            return node;
+        }
+
+        error_at(token->str, "未定義の変数です");
     }
 
     int num = expect_number();

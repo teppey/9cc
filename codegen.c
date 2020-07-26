@@ -11,12 +11,19 @@ static void load() {
 }
 
 void gen_lval(Node *node) {
-    if (node->kind != ND_LVAR)
+    if (node->kind != ND_LVAR && node->kind != ND_GVAR_REF)
         error("代入の左辺値が変数ではありません");
 
-    printf("  mov rax, rbp\n");
-    printf("  sub rax, %d\n", node->offset);
-    printf("  push rax\n");
+    if (node->kind == ND_LVAR) {
+        printf("  mov rax, rbp\n");
+        printf("  sub rax, %d\n", node->offset);
+        printf("  push rax\n");
+    } else if (node->kind == ND_GVAR_REF) {
+        printf("  lea rax, %.*s[rip]\n", node->gvar->len, node->gvar->name);
+        printf("  push rax\n");
+    } else {
+        assert(false);
+    }
 }
 
 void gen(Node *node) {
@@ -203,6 +210,12 @@ void gen(Node *node) {
         case ND_NUM:
             printf("  push %d\n", node->val);
             return;
+        case ND_GVAR_DECL:
+            printf(".global %.*s\n", node->gvar->len, node->gvar->name);
+            printf("%.*s:\n", node->gvar->len, node->gvar->name);
+            printf("  .zero %d\n", 4 * ((node->type->ty == ARRAY) ? node->type->array_size : 1));
+            return;
+        case ND_GVAR_REF:
         case ND_LVAR:
             gen_lval(node);
             if (node->type->ty != ARRAY)
@@ -212,7 +225,7 @@ void gen(Node *node) {
             // 左辺値をスタックにpush
             if (node->lhs->kind == ND_DEREF)
                 gen(node->lhs->lhs);
-             else
+            else
                 gen_lval(node->lhs);
             // 右辺値をスタックにpush
             gen(node->rhs);
