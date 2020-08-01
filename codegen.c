@@ -186,7 +186,10 @@ void gen(Node *node) {
             printf("  push R9\n");
 
         // ローカル変数の領域をスタックに確保
-        int params_offset = node->vector->count * 8;
+        int params_offset = 0;
+        for (int i = 0; i < node->vector->count; i++)
+            params_offset += node_vector_ref(node->vector, i)->type->size;
+
         int locals_offset = 0;
         for (LVar *lvar = node->def->locals; lvar; lvar = lvar->next)
             locals_offset += lvar->type->size;
