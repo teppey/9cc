@@ -18,6 +18,7 @@ typedef enum {
     TK_WHILE,    // while
     TK_FOR,      // for
     TK_INT,      // int
+    TK_CHAR,     // char
     TK_SIZEOF,   // sizeof
 } TokenKind;
 
@@ -111,6 +112,7 @@ typedef enum {
     INT,
     PTR,
     ARRAY,
+    CHAR,
 } TypeKind;
 
 // 変数の型を表す型
@@ -188,4 +190,5 @@ Node *node_vector_ref(NodeVector *vector, int index);
 extern bool is_pointer(Node *node);
 extern void add_type(Node *node);
 extern Type *int_type;
+extern Type *char_type;
 extern Type *new_type(TypeKind ty, int size, Type *ptr_to, size_t array_size);

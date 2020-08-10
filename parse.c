@@ -98,6 +98,15 @@ bool consume_int() {
     return true;
 }
 
+// 次のトークンがcharのときには、トークンを1つ読み進めて真を返す。
+// それ以外の場合には偽を返す。
+bool consume_char() {
+    if (token->kind != TK_CHAR)
+        return false;
+    token = token->next;
+    return true;
+}
+
 // 次のトークンがsizeofのときには、トークンを1つ読み進めて真を返す。
 // それ以外の場合には偽を返す。
 bool consume_sizeof() {
@@ -227,6 +236,13 @@ void tokenize() {
             continue;
         }
 
+        // char
+        if (strncmp(p, "char", 4) == 0 && !is_alnum(p[4])) {
+            cur = new_token(TK_CHAR, cur, p, 4);
+            p += 4;
+            continue;
+        }
+
         // sizeof
         if (strncmp(p, "sizeof", 6) == 0 && !is_alnum(p[6])) {
             cur = new_token(TK_SIZEOF, cur, p, 6);
@@ -304,12 +320,17 @@ void program() {
 }
 
 Node *declaration() {
-    // 型名の前半を読む
-    if (!consume_int())
-        error_at(token->str, "intではありません");
+    Type *type = NULL;
+    if (consume_int())
+        type = int_type;
+    else if (consume_char())
+        type = char_type;
+    else
+        error_at(token->str, "intまたはcharではありません");
+
+    assert(type != NULL);
 
     // ポインタ
-    Type *type = int_type;
     while (consume("*")) {
         Type *ptr = new_type(PTR, 8, type, 0);
         type = ptr;
@@ -457,7 +478,7 @@ Node *stmt() {
 
     if (consume_return()) {
         node = new_node(ND_RETURN, expr(), NULL);
-    } else if (token->kind == TK_INT) {
+    } else if (token->kind == TK_INT || token->kind == TK_CHAR) {
         node = lvar_decl();
     } else {
         node = expr();
@@ -497,11 +518,17 @@ Node *gvar_decl(Type *type, Token *name) {
 
 // ローカル変数定義をパース
 Node *lvar_decl() {
-    if (!consume_int())
-        error_at(token->str, "intではありません");
+    Type *type = NULL;
+    if (consume_int())
+        type = int_type;
+    else if (consume_char())
+        type = char_type;
+    else
+        error_at(token->str, "intまたはcharではありません");
+
+    assert(type != NULL);
 
     // ポインタ
-    Type *type = int_type;
     while (consume("*")) {
         Type *ptr = new_type(PTR, 8, type, 0);
         type = ptr;
@@ -630,6 +657,8 @@ Node *unary() {
         assert(node->type);
         if (node->type->ty == INT)
             return new_node_num(4);
+        else if (node->type->ty == CHAR)
+            return new_node_num(1);
         else if (node->type->ty == PTR)
             return new_node_num(8);
         else

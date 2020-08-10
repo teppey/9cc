@@ -1,6 +1,7 @@
 #include "sobacc.h"
 
 Type *int_type = &(Type){ INT, 8, NULL, 0 };
+Type *char_type = &(Type){ CHAR, 1, NULL, 0 };
 
 Type *pointer_to(Type *base) {
     return new_type(PTR, 8, base, 0);
@@ -40,6 +41,7 @@ void add_type(Node *node) {
         case ND_NEQ:
         case ND_FUNC:
         case ND_DEF:
+            // TODO: 戻り値の型: int以外の型のサポート
             node->type = int_type;
             return;
         case ND_ASSIGN:
@@ -59,7 +61,7 @@ void add_type(Node *node) {
             if (node->lhs->type->ty == PTR || node->lhs->type->ty == ARRAY)
                 node->type = node->lhs->type->ptr_to;
             else
-                node->type = int_type;
+                node->type = node->lhs->type;
             return;
         case ND_PTR_ADD:
         case ND_PTR_SUB:

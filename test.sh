@@ -136,6 +136,10 @@ assert 4 'int a; int main() { return sizeof(a); }'
 assert 32 'int a[4]; int main() { return sizeof(a); }'
 assert 2 'int a; int main() { a = 1; int a; a = 2; return a; }'
 
+# 文字型
+assert 3 'int main() { char x[3]; x[0] = -1; x[1] = 2; int y; y = 4; return x[0] + y; }'
+assert 3 'char x[3]; int y; int main() { x[0] = -1; x[1] = 2; y = 4; return x[0] + y; }'
+
 assert_func ./testfunc/foo.c "OK" 'int main() { foo(); }'
 assert_func ./testfunc/foo1.c "3" 'int main() { foo(3); }'
 assert_func ./testfunc/foo2.c "7" 'int main() { foo(3, 4); }'

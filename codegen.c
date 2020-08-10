@@ -10,6 +10,12 @@ static void load() {
     printf("  push rax\n");
 }
 
+static void load_char() {
+    printf("  pop rax\n");
+    printf("  movsx ecx, BYTE PTR [rax]\n");
+    printf("  push rcx\n");
+}
+
 void gen_lval(Node *node) {
     if (node->kind != ND_LVAR && node->kind != ND_GVAR_REF)
         error("代入の左辺値が変数ではありません");
@@ -221,8 +227,13 @@ void gen(Node *node) {
         case ND_GVAR_REF:
         case ND_LVAR:
             gen_lval(node);
-            if (node->type->ty != ARRAY)
-                load();
+            if (node->type->ty != ARRAY) {
+                if (node->type->ty == CHAR) {
+                    load_char();
+                } else {
+                    load();
+                }
+            }
             return;
         case ND_ASSIGN:
             // 左辺値をスタックにpush
@@ -237,8 +248,13 @@ void gen(Node *node) {
             printf("  pop rdi\n");
             // 左辺値(変数のアドレス)をRAXにセット
             printf("  pop rax\n");
+
             // RAXが示す変数のアドレスに右辺値をストア
-            printf("  mov [rax], rdi\n");
+            if (node->lhs->type->ty == CHAR)
+                printf("  mov [rax], dil\n");
+            else
+                printf("  mov [rax], rdi\n");
+
             // ストアした値(右辺値)をスタックにpush
             printf("  push rdi\n");
             return;
