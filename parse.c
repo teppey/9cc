@@ -126,6 +126,15 @@ Token *consume_ident() {
     return tok;
 }
 
+// 次のトークンが文字列リテラルのときには、そのトークンを返しトークンを1つよ
+// み進める。それ以外の場合にはNULLを返す。
+Token *consume_string() {
+    Token *tok = token;
+    if (tok->kind != TK_STRING)
+        return NULL;
+    token = tok->next;
+    return tok;
+}
 
 // 次のトークンが期待している記号のときには、トークンを1つ読み進める。それ以
 // 外の場合にはエラーを報告する。
@@ -247,6 +256,18 @@ void tokenize() {
         if (strncmp(p, "sizeof", 6) == 0 && !is_alnum(p[6])) {
             cur = new_token(TK_SIZEOF, cur, p, 6);
             p += 6;
+            continue;
+        }
+
+        // 文字列リテラル
+        if (*p == '"') {
+            char *q = p + 1;
+            while (*q != '"')
+                q++;
+            int len = q - p + 1;
+            assert(len >= 0);
+            cur = new_token(TK_STRING, cur, p, len);
+            p = q + 1;
             continue;
         }
 
@@ -759,6 +780,22 @@ Node *primary() {
         }
 
         error_at(token->str, "未定義の変数です");
+    }
+
+    // 文字列リテラル
+    tok = consume_string();
+    if (tok) {
+        String *s = calloc(1, sizeof(String));
+        s->str = tok->str;
+        s->len = tok->len;
+        s->next = strings;
+        s->seq = (s->next == NULL) ? 0 : s->next->seq + 1;
+        strings = s;
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_STRING;
+        node->type = new_type(ARRAY, s->len, char_type, s->len);
+        node->string = s;
+        return node;
     }
 
     int num = expect_number();

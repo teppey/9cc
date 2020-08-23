@@ -25,3 +25,4 @@ primary     = num
             | ident ("[" expr "]")
             | ident
             | "(" expr ")"
+            | "\"" char* "\""

@@ -155,6 +155,13 @@ void gen(Node *node) {
             gen(node_vector_ref(node->vector, 5));
             printf("  pop R9\n");
         }
+
+        // 可変長引数を取る関数を呼ぶときは、浮動小数点数の引数の個数をALに
+        // 入れておく、ということになっている。まだ浮動小数点数は実装してい
+        // ないため、常にALに0をセットしておく。
+        // https://www.sigbus.info/compilerbook#%E3%82%B9%E3%83%86%E3%83%83%E3%83%9725-%E6%96%87%E5%AD%97%E5%88%97%E3%83%AA%E3%83%86%E3%83%A9%E3%83%AB%E3%82%92%E5%AE%9F%E8%A3%85%E3%81%99%E3%82%8B
+        printf("  mov al, 0\n");
+
         printf("  call %.*s\n", node->func->len, node->func->name);
         // 関数の戻り値をスタックトップに入れる
         printf("  push rax\n");
@@ -265,6 +272,10 @@ void gen(Node *node) {
             gen(node->lhs);
             if (node->type->ty != ARRAY)
                 load();
+            return;
+        case ND_STRING:
+            printf("  mov rax, OFFSET FLAT:.LC%d\n", node->string->seq);
+            printf("  push rax\n");
             return;
     }
 

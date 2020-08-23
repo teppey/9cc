@@ -20,6 +20,7 @@ typedef enum {
     TK_INT,      // int
     TK_CHAR,     // char
     TK_SIZEOF,   // sizeof
+    TK_STRING,   // 文字列リテラル
 } TokenKind;
 
 typedef struct Token Token;
@@ -63,6 +64,7 @@ typedef enum {
     ND_DEREF,  // 単項*
     ND_PTR_ADD, // ポインタの加算
     ND_PTR_SUB, // ポインタの減算
+    ND_STRING,  // 文字列リテラル
 } NodeKind;
 
 typedef struct Node Node;
@@ -72,6 +74,7 @@ typedef struct GVar GVar;
 typedef struct Func Func;
 typedef struct Def Def;
 typedef struct Type Type;
+typedef struct String String;
 
 // 抽象構文木のノードの型
 struct Node {
@@ -85,6 +88,7 @@ struct Node {
     Def *def;      // kindがND_DEFの場合のみ使う
     Type *type;    // ノードの型
     GVar *gvar;    // kindがND_GVAR_DECL, ND_GVAR_REFの場合のみ使う
+    String *string; // kindがND_STRINGの場合のみ使う
 };
 
 // ノードベクタの型
@@ -145,6 +149,17 @@ struct GVar {
 
 // グローバル変数のリスト
 GVar *globals;
+
+// 文字列リテラルの型
+struct String {
+    String *next; // 次の文字列リテラルかNULL
+    char *str;    // 文字列リテラルの値
+    int len;      // 文字列リテラルの長さ
+    int seq;      // データセクションのラベルに使用する数字
+};
+
+// 文字列リテラルのリスト
+String *strings;
 
 // パース結果
 extern Node *code[100];

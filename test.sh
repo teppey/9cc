@@ -17,6 +17,23 @@ assert() {
     fi
 }
 
+assert_static() {
+    expected="$1"
+    input="$2"
+
+    ./sobacc "$input" > tmp.s
+    cc -o tmp -static tmp.s
+    ./tmp
+    actual="$?"
+
+    if [ "$actual" = "$expected" ]; then
+        echo "$input => $actual"
+    else
+        echo "$input => $expected expected, but got $actual"
+        exit 1
+    fi
+}
+
 assert_func() {
     file="$1"
     expected="$2"
@@ -45,6 +62,22 @@ assert_func_return() {
     cc -o tmp tmp.s "$file.o"
     ./tmp
     actual="$?"
+
+    if [ "$actual" = "$expected" ]; then
+        echo "$input => $actual"
+    else
+        echo "$input => $expected expected, but got $actual"
+        exit 1
+    fi
+}
+
+assert_output() {
+    expected="$1"
+    input="$2"
+
+    ./sobacc "$input" > tmp.s
+    cc -o tmp -static tmp.s
+    actual=$(./tmp)
 
     if [ "$actual" = "$expected" ]; then
         echo "$input => $actual"
@@ -139,6 +172,11 @@ assert 2 'int a; int main() { a = 1; int a; a = 2; return a; }'
 # 文字型
 assert 3 'int main() { char x[3]; x[0] = -1; x[1] = 2; int y; y = 4; return x[0] + y; }'
 assert 3 'char x[3]; int y; int main() { x[0] = -1; x[1] = 2; y = 4; return x[0] + y; }'
+
+# 文字列リテラル
+assert_static 1 'int main() { char *s; s = "foo"; return 1; }'
+assert_static 97 'int main() { char *s; s = "abc"; return s[0]; }'
+assert_output hello 'int main() { char *s; s = "hello"; printf("%s", s); return 0; }'
 
 assert_func ./testfunc/foo.c "OK" 'int main() { foo(); }'
 assert_func ./testfunc/foo1.c "3" 'int main() { foo(3); }'

@@ -14,8 +14,14 @@ int main(int argc, char **argv) {
 
     printf(".intel_syntax noprefix\n");
 
-    // グローバル変数定義のコードをデータセクションに出力
+    // 文字列リテラルとグローバル変数定義のコードをデータセクションに出力
     printf(".data\n");
+
+    for (String *s = strings; s; s = s->next) {
+        printf(".LC%d:\n", s->seq);
+        printf("  .string %.*s\n", s->len, s->str);
+    }
+
     for (int i = 0; code[i]; i++) {
         Node *node = code[i];
         assert(node->kind == ND_DEF || node->kind == ND_GVAR_DECL);
